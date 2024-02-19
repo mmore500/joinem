@@ -8,6 +8,8 @@ black==22.10.0
     # via joinem (pyproject.toml)
 build==1.0.3
     # via pip-tools
+bump2version==1.0.1
+    # via joinem (pyproject.toml)
 click==8.1.7
     # via
     #   black
