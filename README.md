@@ -51,6 +51,11 @@ find path/to/ -name '*.csv' | python3 -m joinem -o out.csv --how diagonal
 
 If some files may be empty, use `--how diagonal_relaxed`.
 
+To run via Singularity/Apptainer,
+```
+find path/to/ -name '*.csv' | singularity run docker://ghcr.io/mmore500/joinem -o out.feather
+```
+
 ## API
 
 ```
