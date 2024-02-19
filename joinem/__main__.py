@@ -7,7 +7,7 @@ import typing
 import polars as pl
 from tqdm import tqdm
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 
 def get_scanner(filename: str) -> typing.Callable:
