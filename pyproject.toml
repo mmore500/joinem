@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [project.scripts]
-joinem = "joinem:main"
+joinem = "joinem.__main__:main"
 
 [project.readme]
 file = "README.md"
