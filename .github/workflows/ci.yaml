@@ -44,7 +44,7 @@ jobs:
 
   deploy:
     needs:
-      - build
+      - test
       - lint
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
