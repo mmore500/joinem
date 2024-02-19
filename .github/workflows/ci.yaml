@@ -42,8 +42,20 @@ jobs:
     - name: Run linting
       run: ./lint.sh
 
-  deploy:
+  docker-build:
+    name: Docker Image Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v1
+        with:
+          push: false
+          add_git_labels: true
+
+  deploy-pypi:
     needs:
+      - docker-build
       - test
       - lint
     runs-on: ubuntu-latest
@@ -65,3 +77,24 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+
+  deploy-ghcr:
+    name: Docker Image Deploy
+    needs:
+      - test
+      - lint
+      - docker-build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and Push to GitHub Container Registry
+        uses: docker/build-push-action@v1
+        with:
+          push: false
+          tags: "latest,${{github.ref_name}}"
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          repository: mmore500/joinem
+          registry: ghcr.io
+          add_git_labels: true
