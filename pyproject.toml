@@ -39,9 +39,10 @@ repository = "https://github.com/mmore500/joinem"
 tracker = "https://github.com/mmore500/joinem/issues"
 
 [project.optional-dependencies]
-testing = [
+dev = [
     "black==22.10.0",
     "isort==5.12.0",
+    "pip-tools==7.3.0",
     "ruff==0.1.11",
 ]
 
