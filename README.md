@@ -30,30 +30,30 @@ _joinem_ provides a CLI for fast, flexbile concatenation of tabular data using [
 
 Pass input filenames via stdin, one filename per line.
 ```
-find path/to/*.parquet path/to/*.csv | python3 -m joinem -o out.parquet
+find path/to/*.parquet path/to/*.csv | python3 -m joinem out.parquet
 ```
 
 Output file type is inferred from the extension of the output file name.
 Supported output types are feather, JSON, parquet, and csv.
 ```
-find -name '*.parquet' | python3 -m joinem -o out.json
+find -name '*.parquet' | python3 -m joinem out.json
 ```
 
 Use `--progress` to show a progress bar.
 ```
-ls -1 path/{*.csv,*.pqt} | python3 -m joinem -o out.csv --progress
+ls -1 path/{*.csv,*.pqt} | python3 -m joinem out.csv --progress
 ```
 
 If file columns may mismatch, use `--how diagonal`.
 ```
-find path/to/ -name '*.csv' | python3 -m joinem -o out.csv --how diagonal
+find path/to/ -name '*.csv' | python3 -m joinem out.csv --how diagonal
 ```
 
 If some files may be empty, use `--how diagonal_relaxed`.
 
 To run via Singularity/Apptainer,
 ```
-ls -1 *.csv | singularity run docker://ghcr.io/mmore500/joinem -o out.feather
+ls -1 *.csv | singularity run docker://ghcr.io/mmore500/joinem out.feather
 ```
 
 ## API
