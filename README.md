@@ -1,5 +1,5 @@
 [
-![PyPi](https://img.shields.io/pypi/v/joinem.svg)
+![PyPi](https://img.shields.io/pypi/v/joinem.svg?)
 ](https://pypi.python.org/pypi/joinem)
 [
 ![CI](https://github.com/mmore500/joinem/actions/workflows/ci.yaml/badge.svg)
