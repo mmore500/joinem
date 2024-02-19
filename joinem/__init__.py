@@ -2,6 +2,6 @@ __author__ = "Matthew Andres Moreno"
 __copyright__ = "Copyright 2024, Matthew Andres Moreno"
 __credits__ = ["Matthew Andres Moreno"]
 __license__ = "MIT"
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __maintainer__ = "Matthew Andres Moreno"
 __email__ = "m.more500@gmail.com"
