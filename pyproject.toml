@@ -3,7 +3,7 @@ name = "joinem"
 version = "0.1.5"
 description = "CLI for fast, flexbile concatenation of tabular data using polars."
 authors = [
-    { name = "Matthew Andres moreno", email = "m.more500@gmail.com" },
+    { name = "Matthew Andres Moreno", email = "m.more500@gmail.com" },
 ]
 keywords = ["polars", "data processing", "CSV", "parquet", "data science"]
 classifiers = [
