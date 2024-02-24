@@ -12,6 +12,7 @@ _joinem_ provides a CLI for fast, flexbile concatenation of tabular data using [
 
 - Free software: MIT license
 - Repository: <https://github.com/mmore500/joinem>
+- Documentation: <https://github.com/mmore500/joinem/blob/master/README.md>
 
 ## Install
 
