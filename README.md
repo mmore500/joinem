@@ -8,7 +8,7 @@
 ![GitHub stars](https://img.shields.io/github/stars/mmore500/joinem.svg?style=round-square&logo=github&label=Stars&logoColor=white)](https://github.com/mmore500/joinem)
 [![DOI](https://zenodo.org/badge/760045369.svg)](https://zenodo.org/doi/10.5281/zenodo.10701182)
 
-_joinem_ provides a CLI for fast, flexbile concatenation of tabular data using [polars](https://pola.rs/)
+**_joinem_** provides a CLI for fast, flexbile concatenation of tabular data using [polars](https://pola.rs/)
 
 - Free software: MIT license
 - Repository: <https://github.com/mmore500/joinem>
