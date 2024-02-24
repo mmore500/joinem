@@ -6,6 +6,7 @@
 ](https://github.com/mmore500/joinem/actions)
 [
 ![GitHub stars](https://img.shields.io/github/stars/mmore500/joinem.svg?style=round-square&logo=github&label=Stars&logoColor=white)](https://github.com/mmore500/joinem)
+[![DOI](https://zenodo.org/badge/760045369.svg)](https://zenodo.org/doi/10.5281/zenodo.10701182)
 
 _joinem_ provides a CLI for fast, flexbile concatenation of tabular data using [polars](https://pola.rs/)
 
@@ -79,3 +80,23 @@ options:
 Provide input filenames via stdin. Example: find path/to/ -name '*.csv' | python3 -m joinem
 -o out.csv
 ```
+
+## Citing
+
+If joinem contributes to a scientific publication, please cite it as
+
+> Matthew Andres Moreno. (2024). mmore500/joinem. Zenodo. https://doi.org/10.5281/zenodo.10701182
+
+```bibtex
+@software{moreno2024joinem,
+  author = {Matthew Andres Moreno},
+  title = {mmore500/joinem},
+  month = feb,
+  year = 2024,
+  publisher = {Zenodo},
+  doi = {10.5281/zenodo.10701182},
+  url = {https://doi.org/10.5281/zenodo.10701182}
+}
+```
+
+And don't forget to leave a [star on GitHub](https://github.com/mmore500/joinem/stargazers)!
