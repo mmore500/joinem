@@ -84,7 +84,7 @@ Provide input filenames via stdin. Example: find path/to/ -name '*.csv' | python
 
 ## Citing
 
-If joinem contributes to a scientific publication, please cite it as
+If *joinem* contributes to a scholarly work, please cite it as
 
 > Matthew Andres Moreno. (2024). mmore500/joinem. Zenodo. https://doi.org/10.5281/zenodo.10701182
 
