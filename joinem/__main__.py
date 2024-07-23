@@ -10,9 +10,9 @@ from tqdm import tqdm
 __version__ = "0.1.5"
 
 
-def get_scanner(filename: str) -> typing.Callable:
+def get_scanner(filepath: str) -> typing.Callable:
     try:
-        ext = os.path.splitext(filename)[1]
+        ext = os.path.splitext(filepath)[1]
         return {
             ".csv": pl.scan_csv,
             # ".fea": pl.scan_ipc,  # not yet supported by polars
@@ -22,12 +22,12 @@ def get_scanner(filename: str) -> typing.Callable:
             ".pqt": pl.scan_parquet,
         }[ext]
     except KeyError:
-        raise ValueError(f"Unknown file type for {filename}, ext={ext}")
+        raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
-def get_sink(filename: str) -> typing.Callable:
+def get_sink(filepath: str) -> typing.Callable:
     try:
-        ext = os.path.splitext(filename)[1]
+        ext = os.path.splitext(filepath)[1]
         return {
             ".csv": pl.LazyFrame.sink_csv,
             ".fea": pl.LazyFrame.sink_ipc,
@@ -37,14 +37,28 @@ def get_sink(filename: str) -> typing.Callable:
             ".pqt": pl.LazyFrame.sink_parquet,
         }[ext]
     except KeyError:
-        raise ValueError(f"Unknown file type for {filename}, ext={ext}")
+        raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
+
+
+def eval_column(with_column: str, filepath: str) -> str:
+    try:
+        return eval(with_column)
+    except Exception as e:
+        logging.error(
+            "Failed to parse with_column expression `%s` for filepath `%s`"
+            " error: %s",
+            with_column,
+            filepath,
+            e,
+        )
+        sys.exit(1)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Concatenate CSV and/or parquet tabular data files.",
         epilog=(
-            "Provide input filenames via stdin. Example: "
+            "Provide input filepaths via stdin. Example: "
             "find path/to/ -name '*.csv' | python3 -m joinem -o out.csv"
         ),
     )
@@ -56,6 +70,19 @@ def main() -> None:
         "--progress", action="store_true", help="Show progress bar"
     )
     parser.add_argument(
+        "--with-column",
+        action="append",
+        default=[],
+        dest="with_columns",
+        help=(
+            "Expression to be evaluated to add a column, as access to each "
+            "datafile's filepath as `filepath` and polars as `pl`. "
+            "Example: "
+            r"""'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")'"""
+        ),
+        type=str,
+    )
+    parser.add_argument(
         "--how",
         choices=["vertical", "horizontal", "diagonal", "diagonal_relaxed"],
         default="vertical",
@@ -64,8 +91,13 @@ def main() -> None:
     args = parser.parse_args()
 
     lazy_frames = (
-        get_scanner(filename)(filename)
-        for filename in map(str.strip, sys.stdin)
+        get_scanner(filepath)(filepath).with_columns(
+            *(
+                eval_column(with_column, filepath)
+                for with_column in args.with_columns
+            )
+        )
+        for filepath in map(str.strip, sys.stdin)
     )
     if args.progress:
         lazy_frames = tqdm(lazy_frames)

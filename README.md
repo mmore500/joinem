@@ -27,6 +27,7 @@
 - Supports output to CSV, JSON, parquet, and feather file types.
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Provides a progress bar with `--progress`.
+- Add programatically-generated columns to output.
 
 ## Example Usage
 
@@ -56,6 +57,21 @@ If some files may be empty, use `--how diagonal_relaxed`.
 To run via Singularity/Apptainer,
 ```
 ls -1 *.csv | singularity run docker://ghcr.io/mmore500/joinem out.feather
+```
+
+Add literal value column to output.
+```
+find path/to/ -name '*.csv' | python3 -m joinem out.csv --with-column 'pl.lit(2).alias("two")'
+```
+
+Alias an existing column in the output.
+```
+find path/to/ -name '*.csv' | python3 -m joinem out.csv --with-column 'pl.col("a").alias("a2")'
+```
+
+Apply regex on source datafile paths to create new column in output.
+```
+find path/to/ -name '*.csv' | python3 -m joinem out.csv --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")'
 ```
 
 ## API
