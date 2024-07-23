@@ -40,7 +40,7 @@ def get_sink(filepath: str) -> typing.Callable:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
-def eval_column(with_column: str, filepath: str) -> str:
+def eval_column(with_column: str, filepath: str) -> pl.Expr:
     try:
         return eval(with_column)
     except Exception as e:
