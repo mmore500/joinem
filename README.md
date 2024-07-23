@@ -72,7 +72,7 @@ ls -1 *.csv | python3 -m joinem out.csv --with-column 'pl.col("a").alias("a2")'
 Apply regex on source datafile paths to create new column in output.
 ```
 ls -1 path/to/*.csv | python3 -m joinem out.csv \
-  --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")'
+  --with-column 'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv", r"${1}").alias("filename stem")'
 ```
 
 ## API

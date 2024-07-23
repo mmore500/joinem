@@ -78,7 +78,7 @@ def main() -> None:
             "Expression to be evaluated to add a column, as access to each "
             "datafile's filepath as `filepath` and polars as `pl`. "
             "Example: "
-            r"""'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")'"""
+            r"""'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv", r"${1}").alias("filename stem")'"""
         ),
         type=str,
     )
