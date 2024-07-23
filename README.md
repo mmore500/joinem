@@ -61,17 +61,18 @@ ls -1 *.csv | singularity run docker://ghcr.io/mmore500/joinem out.feather
 
 Add literal value column to output.
 ```
-find path/to/ -name '*.csv' | python3 -m joinem out.csv --with-column 'pl.lit(2).alias("two")'
+ls -1 *.csv | python3 -m joinem out.csv --with-column 'pl.lit(2).alias("two")'
 ```
 
 Alias an existing column in the output.
 ```
-find path/to/ -name '*.csv' | python3 -m joinem out.csv --with-column 'pl.col("a").alias("a2")'
+ls -1 *.csv | python3 -m joinem out.csv --with-column 'pl.col("a").alias("a2")'
 ```
 
 Apply regex on source datafile paths to create new column in output.
 ```
-find path/to/ -name '*.csv' | python3 -m joinem out.csv --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")'
+ls -1 path/to/*.csv | python3 -m joinem out.csv \
+  --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")'
 ```
 
 ## API
