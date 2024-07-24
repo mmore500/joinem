@@ -75,6 +75,11 @@ ls -1 path/to/*.csv | python3 -m joinem out.csv \
   --with-column 'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv", r"${1}").alias("filename stem")'
 ```
 
+Read data from stdin and write data to stdout.
+```
+cat foo.csv | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv
+```
+
 ## API
 
 ```
