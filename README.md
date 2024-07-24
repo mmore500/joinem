@@ -91,6 +91,7 @@ options:
   -h, --help            show this help message and exit
   --version             show program's version number and exit
   --progress            Show progress bar
+  --stdin               Read data from stdin
   --with-column WITH_COLUMNS
                         Expression to be evaluated to add a column, as access to
                         each datafile's filepath as `filepath` and polars as
@@ -100,6 +101,12 @@ options:
   --how {vertical,horizontal,diagonal,diagonal_relaxed}
                         How to concatenate frames. See <https://docs.pola.rs/py-
                         polars/html/reference/api/polars.concat.html> for more information.
+  --input-filetype INPUT_FILETYPE
+                        Filetype of input. Otherwise, inferred.
+                        Example: csv, parquet, json, feather
+  --output-filetype OUTPUT_FILETYPE
+                        Filetype of output. Otherwise, inferred.
+                        Example: csv, parquet
 
 Provide input filenames via stdin. Example: find path/to/ -name '*.csv' | python3 -m joinem
 out.csv
