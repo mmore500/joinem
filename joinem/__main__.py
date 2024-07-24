@@ -59,7 +59,7 @@ def main() -> None:
         description="Concatenate CSV and/or parquet tabular data files.",
         epilog=(
             "Provide input filepaths via stdin. Example: "
-            "find path/to/ -name '*.csv' | python3 -m joinem -o out.csv"
+            "find path/to/ -name '*.csv' | python3 -m joinem out.csv"
         ),
     )
     parser.add_argument(

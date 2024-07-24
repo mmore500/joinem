@@ -102,7 +102,7 @@ options:
                         polars/html/reference/api/polars.concat.html> for more information.
 
 Provide input filenames via stdin. Example: find path/to/ -name '*.csv' | python3 -m joinem
--o out.csv
+out.csv
 ```
 
 ## Citing
