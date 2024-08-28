@@ -13,12 +13,14 @@ __version__ = "0.3.0"
 
 def get_scanner(filepath: str) -> typing.Callable:
     try:
-        ext = os.path.splitext(filepath)[1]
+        ext = os.path.splitext(filepath.replace("csv.gz", "csvgz"))[1]
         return {
             ".csv": pl.scan_csv,
-            # ".fea": pl.scan_ipc,  # not yet supported by polars
-            # ".feather": pl.scan_ipc,  # not yet supported by polars
-            # ".json": pl.scan_ndjson,  # not yet supported by polars
+            ".csvgz": pl.read_csv,  # gz scan not yet supported by polars
+            ".csv.gz": pl.read_csv,  # gz scan not yet supported by polars
+            ".fea": pl.read_ipc,  # scan not yet supported by polars
+            ".feather": pl.read_ipc,  # scan not yet supported by polars
+            ".json": pl.read_ndjson,  # scan not yet supported by polars
             ".parquet": pl.scan_parquet,
             ".pqt": pl.scan_parquet,
         }[ext or f".{filepath}"]
@@ -28,12 +30,14 @@ def get_scanner(filepath: str) -> typing.Callable:
 
 def get_reader(filepath: str) -> typing.Callable:
     try:
-        ext = os.path.splitext(filepath)[1]
+        ext = os.path.splitext(filepath.replace("csv.gz", "csvgz"))[1]
         return {
             ".csv": pl.read_csv,
-            ".fea": pl.read_ipc,  # not yet supported by polars
-            ".feather": pl.read_ipc,  # not yet supported by polars
-            ".json": pl.read_ndjson,  # not yet supported by polars
+            ".csvgz": pl.read_csv,
+            ".csv.gz": pl.read_csv,
+            ".fea": pl.read_ipc,
+            ".feather": pl.read_ipc,
+            ".json": pl.read_ndjson,
             ".parquet": pl.read_parquet,
             ".pqt": pl.read_parquet,
         }[ext or f".{filepath}"]
