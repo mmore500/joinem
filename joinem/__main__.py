@@ -8,7 +8,7 @@ import warnings
 import polars as pl
 from tqdm import tqdm
 
-__version__ = "0.3.2"
+__version__ = "0.4.0"
 
 
 def get_scanner(filepath: str) -> typing.Callable:
