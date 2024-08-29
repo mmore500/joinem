@@ -74,6 +74,22 @@ def eval_column(with_column: str, filepath: str) -> pl.Expr:
         sys.exit(1)
 
 
+def eval_open_kwargs(open_kwargs: str) -> typing.Dict:
+    to_eval = f"dict({','.join(open_kwargs)})"
+    try:
+        return eval(to_eval)
+    except Exception as e:
+        logging.error(
+            "Failed to parse open_kwarg expressions `%s` via `%s`"
+            " error: %s",
+            open_kwargs,
+            to_eval,
+            e,
+        )
+        sys.exit(1)
+
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Concatenate CSV and/or parquet tabular data files.",
@@ -129,6 +145,19 @@ def main() -> None:
         help="Filetype of output. Otherwise, inferred. Example: csv, parquet",
         type=str,
     )
+    parser.add_argument(
+        "--open-kwarg",
+        action="append",
+        default=[],
+        dest="open_kwargs",
+        help=(
+            "Additional keyword arguments to pass to the file opening call. " "Provide as 'key=value'. "
+            "Specify multiple kwargs by using this flag multiple times. "
+            "Arguments will be evaluated as Python expressions. "
+            "Example: 'infer_schema_length=None'"
+        ),
+        type=str,
+    )
     args = parser.parse_args()
 
     # silence warning...
@@ -139,7 +168,10 @@ def main() -> None:
     lazy_frames = (
         [get_scanner, get_reader][args.stdin](
             filepath if args.input_filetype is None else args.input_filetype
-        )([filepath, sys.stdin.buffer][args.stdin])
+        )(
+            [filepath, sys.stdin.buffer][args.stdin],
+            **eval_open_kwargs(args.open_kwargs),
+        )
         .with_columns(
             *(
                 eval_column(with_column, filepath)
