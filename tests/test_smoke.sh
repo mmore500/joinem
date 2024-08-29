@@ -43,7 +43,7 @@ find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy2.csv  --how diagonal
 
 find assets/x.*pqt | python3 -m joinem out/x2.csv --with-column 'pl.lit(2).alias("two")' --with-column 'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv", r"${1}").alias("filename stem")' --with-column 'pl.col("a").alias("a2")'
 
-cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv > out/stdout
+cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --open-kwarg infer_schema_length=None --output-filetype csv --input-filetype csv > out/stdout
 
 cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv > out/stdout
 
