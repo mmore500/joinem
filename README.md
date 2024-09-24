@@ -113,6 +113,9 @@ options:
                         Additional keyword arguments to pass to the file opening call. Provide as 'key=value'.
                         Specify multiple kwargs by using this flag multiple times. Arguments will be evaluated as
                         Python expressions. Example: 'infer_schema_length=None'
+  --sink-kwarg SINK_KWARGS
+                        Additional keyword arguments to pass to the file sink call. Provide as 'key=value'. Specify multiple kwargs by using this flag multiple times. Arguments will be
+                        evaluated as Python expressions. Example: 'compression="lz4"'
 
 Provide input filepaths via stdin. Example: find path/to/ -name '*.csv' | python3 -m joinem out.csv
 ```
