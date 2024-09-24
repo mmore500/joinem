@@ -16,7 +16,7 @@ find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea ass
 find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.feather --how diagonal_relaxed
 find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.json --how diagonal_relaxed
 find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.parquet --how diagonal_relaxed
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.pqt --how diagonal_relaxed
+find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.pqt --how diagonal_relaxed --sink-kwarg 'compression="lz4"' --sink-kwarg 'maintain_order=False'
 
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.csv --progress
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.fea

@@ -74,15 +74,15 @@ def eval_column(with_column: str, filepath: str) -> pl.Expr:
         sys.exit(1)
 
 
-def eval_open_kwargs(open_kwargs: str) -> typing.Dict:
-    to_eval = f"dict({','.join(open_kwargs)})"
+def eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
+    to_eval = f"dict({','.join(kwargs_list)})"
     try:
         return eval(to_eval)
     except Exception as e:
         logging.error(
-            "Failed to parse open_kwarg expressions `%s` via `%s`"
+            "Failed to parse kwarg expressions `%s` via `%s`"
             " error: %s",
-            open_kwargs,
+            kwargs_list,
             to_eval,
             e,
         )
@@ -158,6 +158,20 @@ def main() -> None:
         ),
         type=str,
     )
+    parser.add_argument(
+        "--sink-kwarg",
+        action="append",
+        default=[],
+        dest="sink_kwargs",
+        help=(
+            "Additional keyword arguments to pass to the file sink call. "
+            "Provide as 'key=value'. "
+            "Specify multiple kwargs by using this flag multiple times. "
+            "Arguments will be evaluated as Python expressions. "
+            """Example: 'compression="lz4"'"""
+        ),
+        type=str,
+    )
     args = parser.parse_args()
 
     # silence warning...
@@ -170,7 +184,7 @@ def main() -> None:
             filepath if args.input_filetype is None else args.input_filetype
         )(
             [filepath, sys.stdin.buffer][args.stdin],
-            **eval_open_kwargs(args.open_kwargs),
+            **eval_kwargs(args.open_kwargs),
         )
         .with_columns(
             *(
@@ -199,7 +213,11 @@ def main() -> None:
         args.output_file
         if args.output_filetype is None
         else args.output_filetype
-    )(result, args.output_file)
+    )(
+        result,
+        args.output_file,
+        **eval_kwargs(args.sink_kwargs),
+    )
 
 
 if __name__ == "__main__":
