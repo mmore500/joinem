@@ -80,6 +80,12 @@ Read data from stdin and write data to stdout.
 cat foo.csv | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv
 ```
 
+Advanced usage.
+Write to parquet via stdout using `pv` to display progress, cast "myValue" column to categorical, and use lz4 for parquet compression.
+```
+ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt --with-column 'pl.col("myValue").cast(pl.Categorical)' --sink-kwarg 'compression="lz4"' | pv > concat.pqt
+```
+
 ## API
 
 ```
