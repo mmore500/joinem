@@ -130,13 +130,19 @@ def main() -> None:
         "--eager-read",
         action="store_true",
         default=False,
-        help="Use read_x instead of scan_x",
+        help=(
+            "Use read_* instead of scan_*. "
+            "Can improve performance in some cases."
+        ),
     )
     parser.add_argument(
         "--eager-write",
         action="store_true",
-        help="Use write_x instead of sink_x",
         default=False,
+        help=(
+            "Use write_* instead of sink_*. "
+            "Can improve performance in some cases."
+        ),
     )
     parser.add_argument(
         "--with-column",
