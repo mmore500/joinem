@@ -89,12 +89,16 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt --with
 ## API
 
 ```
-usage: __main__.py [-h] [--version] [--progress] [--stdin] [--with-column WITH_COLUMNS]
-                   [--how {vertical,horizontal,diagonal,diagonal_relaxed}] [--input-filetype INPUT_FILETYPE]
-                   [--output-filetype OUTPUT_FILETYPE] [--read-kwarg READ_KWARGS]
+usage: __main__.py [-h] [--version] [--progress] [--stdin] [--eager-read]
+                   [--eager-write] [--with-column WITH_COLUMNS]
+                   [--string-cache]
+                   [--how {vertical,horizontal,diagonal,diagonal_relaxed}]
+                   [--input-filetype INPUT_FILETYPE]
+                   [--output-filetype OUTPUT_FILETYPE]
+                   [--read-kwarg READ_KWARGS] [--write-kwarg WRITE_KWARGS]
                    output_file
 
-Concatenate CSV and/or parquet tabular data files.
+CLI for fast, flexbile concatenation of tabular data using Polars.
 
 positional arguments:
   output_file           Output file name
@@ -104,26 +108,43 @@ options:
   --version             show program's version number and exit
   --progress            Show progress bar
   --stdin               Read data from stdin
+  --eager-read          Use read_* instead of scan_*. Can improve performance
+                        in some cases.
+  --eager-write         Use write_* instead of sink_*. Can improve performance
+                        in some cases.
   --with-column WITH_COLUMNS
-                        Expression to be evaluated to add a column, as access to each datafile's filepath as
-                        `filepath` and polars as `pl`. Example: 'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv",
+                        Expression to be evaluated to add a column, as access
+                        to each datafile's filepath as `filepath` and polars
+                        as `pl`. Example:
+                        'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv",
                         r"${1}").alias("filename stem")'
+  --string-cache        Enable Polars global string cache.
   --how {vertical,horizontal,diagonal,diagonal_relaxed}
-                        How to concatenate frames. See <https://docs.pola.rs/py-
-                        polars/html/reference/api/polars.concat.html> for more information.
+                        How to concatenate frames. See
+                        <https://docs.pola.rs/py-
+                        polars/html/reference/api/polars.concat.html> for more
+                        information.
   --input-filetype INPUT_FILETYPE
-                        Filetype of input. Otherwise, inferred. Example: csv, parquet, json, feather
+                        Filetype of input. Otherwise, inferred. Example: csv,
+                        parquet, json, feather
   --output-filetype OUTPUT_FILETYPE
-                        Filetype of output. Otherwise, inferred. Example: csv, parquet
+                        Filetype of output. Otherwise, inferred. Example: csv,
+                        parquet
   --read-kwarg READ_KWARGS
-                        Additional keyword arguments to pass to the file opening call. Provide as 'key=value'.
-                        Specify multiple kwargs by using this flag multiple times. Arguments will be evaluated as
-                        Python expressions. Example: 'infer_schema_length=None'
+                        Additional keyword arguments to pass to pl.read_* or
+                        pl.scan_* call(s). Provide as 'key=value'. Specify
+                        multiple kwargs by using this flag multiple times.
+                        Arguments will be evaluated as Python expressions.
+                        Example: 'infer_schema_length=None'
   --write-kwarg WRITE_KWARGS
-                        Additional keyword arguments to pass to the file sink call. Provide as 'key=value'. Specify multiple kwargs by using this flag multiple times. Arguments will be
-                        evaluated as Python expressions. Example: 'compression="lz4"'
+                        Additional keyword arguments to pass to pl.write_* or
+                        pl.sink_* call. Provide as 'key=value'. Specify
+                        multiple kwargs by using this flag multiple times.
+                        Arguments will be evaluated as Python expressions.
+                        Example: 'compression="lz4"'
 
-Provide input filepaths via stdin. Example: find path/to/ -name '*.csv' | python3 -m joinem out.csv
+Provide input filepaths via stdin. Example: find path/to/ -name '*.csv' |
+python3 -m joinem out.csv
 ```
 
 ## Citing
