@@ -16,7 +16,7 @@ find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea ass
 find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.feather --how diagonal_relaxed
 find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.json --how diagonal_relaxed
 find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.parquet --how diagonal_relaxed
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.pqt --how diagonal_relaxed --sink-kwarg 'compression="lz4"' --sink-kwarg 'maintain_order=False'
+find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.pqt --how diagonal_relaxed --write-kwarg 'compression="lz4"' --write-kwarg 'maintain_order=False'
 
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.csv --progress
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.fea
@@ -51,7 +51,7 @@ find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy6.csv  --how diagonal
 
 find assets/x.*pqt | python3 -m joinem out/x2.csv --with-column 'pl.lit(2).alias("two")' --with-column 'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv", r"${1}").alias("filename stem")' --with-column 'pl.col("a").alias("a2")'
 
-cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --open-kwarg infer_schema_length=None --output-filetype csv --input-filetype csv > out/stdout
+cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --read-kwarg infer_schema_length=None --output-filetype csv --input-filetype csv > out/stdout
 
 cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv > out/stdout
 

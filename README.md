@@ -83,7 +83,7 @@ cat foo.csv | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --in
 Advanced usage.
 Write to parquet via stdout using `pv` to display progress, cast "myValue" column to categorical, and use lz4 for parquet compression.
 ```
-ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt --with-column 'pl.col("myValue").cast(pl.Categorical)' --sink-kwarg 'compression="lz4"' | pv > concat.pqt
+ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt --with-column 'pl.col("myValue").cast(pl.Categorical)' --write-kwarg 'compression="lz4"' | pv > concat.pqt
 ```
 
 ## API
@@ -91,7 +91,7 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt --with
 ```
 usage: __main__.py [-h] [--version] [--progress] [--stdin] [--with-column WITH_COLUMNS]
                    [--how {vertical,horizontal,diagonal,diagonal_relaxed}] [--input-filetype INPUT_FILETYPE]
-                   [--output-filetype OUTPUT_FILETYPE] [--open-kwarg OPEN_KWARGS]
+                   [--output-filetype OUTPUT_FILETYPE] [--read-kwarg READ_KWARGS]
                    output_file
 
 Concatenate CSV and/or parquet tabular data files.
@@ -115,11 +115,11 @@ options:
                         Filetype of input. Otherwise, inferred. Example: csv, parquet, json, feather
   --output-filetype OUTPUT_FILETYPE
                         Filetype of output. Otherwise, inferred. Example: csv, parquet
-  --open-kwarg OPEN_KWARGS
+  --read-kwarg READ_KWARGS
                         Additional keyword arguments to pass to the file opening call. Provide as 'key=value'.
                         Specify multiple kwargs by using this flag multiple times. Arguments will be evaluated as
                         Python expressions. Example: 'infer_schema_length=None'
-  --sink-kwarg SINK_KWARGS
+  --write-kwarg WRITE_KWARGS
                         Additional keyword arguments to pass to the file sink call. Provide as 'key=value'. Specify multiple kwargs by using this flag multiple times. Arguments will be
                         evaluated as Python expressions. Example: 'compression="lz4"'
 

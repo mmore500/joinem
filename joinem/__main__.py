@@ -179,12 +179,13 @@ def main() -> None:
         type=str,
     )
     parser.add_argument(
-        "--open-kwarg",
+        "--read-kwarg",
         action="append",
         default=[],
-        dest="open_kwargs",
+        dest="read_kwargs",
         help=(
-            "Additional keyword arguments to pass to the file opening call. " "Provide as 'key=value'. "
+            "Additional keyword arguments to pass to pl.read_* or pl.scan_* call(s). "
+            "Provide as 'key=value'. "
             "Specify multiple kwargs by using this flag multiple times. "
             "Arguments will be evaluated as Python expressions. "
             "Example: 'infer_schema_length=None'"
@@ -192,12 +193,12 @@ def main() -> None:
         type=str,
     )
     parser.add_argument(
-        "--sink-kwarg",
+        "--write-kwarg",
         action="append",
         default=[],
-        dest="sink_kwargs",
+        dest="write_kwargs",
         help=(
-            "Additional keyword arguments to pass to the file sink call. "
+            "Additional keyword arguments to pass to pl.write_* or pl.sink_* call. "
             "Provide as 'key=value'. "
             "Specify multiple kwargs by using this flag multiple times. "
             "Arguments will be evaluated as Python expressions. "
@@ -220,7 +221,7 @@ def main() -> None:
             filepath if args.input_filetype is None else args.input_filetype
         )(
             [filepath, sys.stdin.buffer][args.stdin],
-            **eval_kwargs(args.open_kwargs),
+            **eval_kwargs(args.read_kwargs),
         )
         .with_columns(
             *(
@@ -252,7 +253,7 @@ def main() -> None:
     )(
         result.collect() if args.eager_write else result,
         args.output_file,
-        **eval_kwargs(args.sink_kwargs),
+        **eval_kwargs(args.write_kwargs),
     )
 
 
