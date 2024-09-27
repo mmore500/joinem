@@ -107,7 +107,7 @@ def eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Concatenate CSV and/or parquet tabular data files.",
+        description="CLI for fast, flexbile concatenation of tabular data using Polars.",
         epilog=(
             "Provide input filepaths via stdin. Example: "
             "find path/to/ -name '*.csv' | python3 -m joinem out.csv"
