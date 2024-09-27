@@ -60,6 +60,21 @@ def get_sink(filepath: str) -> typing.Callable:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
+def get_write(filepath: str) -> typing.Callable:
+    try:
+        ext = os.path.splitext(filepath)[1]
+        return {
+            ".csv": pl.DataFrame.write_csv,
+            ".fea": pl.DataFrame.write_ipc,
+            ".feather": pl.DataFrame.write_ipc,
+            ".json": pl.DataFrame.write_ndjson,
+            ".parquet": pl.DataFrame.write_parquet,
+            ".pqt": pl.DataFrame.write_parquet,
+        }[ext or f".{filepath}"]
+    except KeyError:
+        raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
+
+
 def eval_column(with_column: str, filepath: str) -> pl.Expr:
     try:
         return eval(with_column)
@@ -110,6 +125,18 @@ def main() -> None:
         action="store_true",
         default=False,
         help="Read data from stdin",
+    )
+    parser.add_argument(
+        "--eager-read",
+        action="store_true",
+        default=False,
+        help="Use read_x instead of scan_x",
+    )
+    parser.add_argument(
+        "--eager-write",
+        action="store_true",
+        help="Use write_x instead of sink_x",
+        default=False,
     )
     parser.add_argument(
         "--with-column",
@@ -189,7 +216,7 @@ def main() -> None:
         pl.enable_string_cache()
 
     lazy_frames = (
-        [get_scanner, get_reader][args.stdin](
+        [get_scanner, get_reader][args.stdin or args.eager_read](
             filepath if args.input_filetype is None else args.input_filetype
         )(
             [filepath, sys.stdin.buffer][args.stdin],
@@ -218,12 +245,12 @@ def main() -> None:
             sys.exit(0)
         logging.error("Failed to concatenate frames, error: %s", e)
         sys.exit(1)
-    get_sink(
+    [get_sink, get_write][args.eager_write](
         args.output_file
         if args.output_filetype is None
         else args.output_filetype
     )(
-        result,
+        result.collect() if args.eager_write else result,
         args.output_file,
         **eval_kwargs(args.sink_kwargs),
     )
