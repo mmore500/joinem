@@ -33,7 +33,7 @@ find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.par
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.pqt
 
 find assets/x.*pqt assets/y.*csv | python3 -m joinem out/xy.csv --how diagonal --progress
-find assets/x.*parquet assets/y.*csv | python3 -m joinem out/xy.fea --how diagonal
+find assets/x.*parquet assets/y.*csv | python3 -m joinem out/xy.fea --how diagonal --string-cache
 find assets/x.*pqt assets/y.*parquet | python3 -m joinem out/xy.feather --how diagonal
 find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy.json --how diagonal
 find assets/x.*pqt assets/y.*csv | python3 -m joinem out/xy.parquet --how diagonal
@@ -47,4 +47,4 @@ cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --open-kwarg infer_
 
 cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv > out/stdout
 
-cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv.gz > out/stdout
+cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv.gz --string-cache > out/stdout

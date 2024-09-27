@@ -125,6 +125,12 @@ def main() -> None:
         type=str,
     )
     parser.add_argument(
+        "--string-cache",
+        action="store_true",
+        help="Enable Polars global string cache.",
+        default=False,
+    )
+    parser.add_argument(
         "--how",
         choices=["vertical", "horizontal", "diagonal", "diagonal_relaxed"],
         default="vertical",
@@ -179,6 +185,9 @@ def main() -> None:
     # UserWarning: Polars found a filename. Ensure you pass a path to the
     # file instead of a python file object when possible for best
     # performance.
+    if args.string_cache:
+        pl.enable_string_cache()
+
     lazy_frames = (
         [get_scanner, get_reader][args.stdin](
             filepath if args.input_filetype is None else args.input_filetype
