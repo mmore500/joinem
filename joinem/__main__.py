@@ -89,6 +89,18 @@ def eval_column(with_column: str, filepath: str) -> pl.Expr:
         sys.exit(1)
 
 
+def eval_filter(with_column: str) -> pl.Expr:
+    try:
+        return eval(with_column)
+    except Exception as e:
+        logging.error(
+            "Failed to parse filter expression `%s`"
+            " error: %s",
+            with_column,
+            e,
+        )
+
+
 def eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
     to_eval = f"dict({','.join(kwargs_list)})"
     try:
@@ -143,6 +155,18 @@ def main() -> None:
             "Use write_* instead of sink_*. "
             "Can improve performance in some cases."
         ),
+    )
+    parser.add_argument(
+        "--filter",
+        action="append",
+        default=[],
+        dest="filters",
+        help=(
+            "Expression to be evaluated and passed to polars DataFrame.filter. "
+            "Example: "
+            r"""'pl.col("thing") == 0'"""
+        ),
+        type=str,
     )
     parser.add_argument(
         "--with-column",
@@ -233,6 +257,12 @@ def main() -> None:
             *(
                 eval_column(with_column, filepath)
                 for with_column in args.with_columns
+            ),
+        )
+        .filter(
+            *(
+                eval_filter(filter)
+                for filter in args.filters or ("True",)
             ),
         )
         .lazy()

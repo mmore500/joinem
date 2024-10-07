@@ -112,6 +112,8 @@ options:
                         in some cases.
   --eager-write         Use write_* instead of sink_*. Can improve performance
                         in some cases.
+  --filter FILTERS      Expression to be evaluated and passed to polars DataFrame.filter.
+                        Example: 'pl.col("thing") == 0'
   --with-column WITH_COLUMNS
                         Expression to be evaluated to add a column, as access
                         to each datafile's filepath as `filepath` and polars
