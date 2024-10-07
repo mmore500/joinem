@@ -150,7 +150,7 @@ def main() -> None:
         default=[],
         dest="with_columns",
         help=(
-            "Expression to be evaluated to add a column, as access to each "
+            "Expression to be evaluated to add a column, has access to each "
             "datafile's filepath as `filepath` and polars as `pl`. "
             "Example: "
             r"""'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv", r"${1}").alias("filename stem")'"""
@@ -233,7 +233,7 @@ def main() -> None:
             *(
                 eval_column(with_column, filepath)
                 for with_column in args.with_columns
-            )
+            ),
         )
         .lazy()
         for filepath in [
