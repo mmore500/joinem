@@ -39,9 +39,9 @@ find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy.json --how diagonal
 find assets/x.*pqt assets/y.*csv | python3 -m joinem out/xy.parquet --how diagonal
 find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy.pqt --how diagonal
 
-find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy2.csv  --how diagonal --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")' --eager-read
+find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy2.csv  --how diagonal --filter True --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")' --eager-read
 
-find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy3.csv  --how diagonal --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")' --eager-read
+find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy3.csv  --how diagonal --filter 'pl.col("filename stem") == ".csv"' --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")' --eager-read
 
 find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy4.csv  --how diagonal --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")' --eager-read
 
