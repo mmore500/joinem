@@ -182,6 +182,12 @@ def main() -> None:
         type=str,
     )
     parser.add_argument(
+        "--shrink-dtypes",
+        action="store_true",
+        help="Shrink numeric columns to the minimal required datatype.",
+        default=False,
+    )
+    parser.add_argument(
         "--string-cache",
         action="store_true",
         help="Enable Polars global string cache.",
@@ -282,6 +288,11 @@ def main() -> None:
             sys.exit(0)
         logging.error("Failed to concatenate frames, error: %s", e)
         sys.exit(1)
+
+    if args.shrink_dtypes:
+        # shrink_dtype is not yet fully supported by polars lazy API
+        result = result.select(pl.all().shrink_dtype()).collect().lazy()
+
     [get_sink, get_write][args.eager_write](
         args.output_file
         if args.output_filetype is None
