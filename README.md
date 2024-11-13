@@ -120,6 +120,7 @@ options:
                         as `pl`. Example:
                         'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv",
                         r"${1}").alias("filename stem")'
+  --shrink-dtypes       Shrink numeric columns to the minimal required datatype.
   --string-cache        Enable Polars global string cache.
   --how {vertical,horizontal,diagonal,diagonal_relaxed}
                         How to concatenate frames. See
