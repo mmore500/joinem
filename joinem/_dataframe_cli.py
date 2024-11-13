@@ -281,7 +281,7 @@ def dataframe_cli(
             ("stdin",),
         ][args.stdin]
     )
-    lazy_frames = map(input_dataframe_op, lazy_frames)
+    lazy_frames = map(lambda x: x.lazy(), map(input_dataframe_op, lazy_frames))
     if args.progress:
         lazy_frames = tqdm(lazy_frames)
 
@@ -294,7 +294,7 @@ def dataframe_cli(
         logging.error("Failed to concatenate frames, error: %s", e)
         sys.exit(1)
 
-    result = output_dataframe_op(result)
+    result = output_dataframe_op(result).lazy()
 
     if args.shrink_dtypes:
         # shrink_dtype is not yet fully supported by polars lazy API
