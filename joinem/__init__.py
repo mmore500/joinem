@@ -5,3 +5,7 @@ __license__ = "MIT"
 __version__ = "0.7.0"
 __maintainer__ = "Matthew Andres Moreno"
 __email__ = "m.more500@gmail.com"
+
+from ._dataframe_cli import dataframe_cli
+
+__all__ = ["dataframe_cli"]
