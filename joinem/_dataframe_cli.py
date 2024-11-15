@@ -143,6 +143,14 @@ def dataframe_cli(
         help="Read data from stdin",
     )
     parser.add_argument(
+        "--drop",
+        action="append",
+        default=[],
+        dest="drop",
+        help="Columns to drop.",
+        type=str,
+    )
+    parser.add_argument(
         "--eager-read",
         action="store_true",
         default=False,
@@ -294,6 +302,7 @@ def dataframe_cli(
         logging.error("Failed to concatenate frames, error: %s", e)
         sys.exit(1)
 
+    result = result.drop(args.drop)
     result = output_dataframe_op(result).lazy()
 
     if args.shrink_dtypes:

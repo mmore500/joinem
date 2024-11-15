@@ -108,6 +108,7 @@ options:
   --version             show program's version number and exit
   --progress            Show progress bar
   --stdin               Read data from stdin
+  --drop DROP           Columns to drop.
   --eager-read          Use read_* instead of scan_*. Can improve performance
                         in some cases.
   --eager-write         Use write_* instead of sink_*. Can improve performance
