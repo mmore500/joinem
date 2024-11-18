@@ -181,6 +181,37 @@ def dataframe_cli(
         type=str,
     )
     parser.add_argument(
+        "--head",
+        default=None,
+        dest="head",
+        help=("Number of rows to include in output, counting from front. "),
+        type=int,
+    )
+    parser.add_argument(
+        "--tail",
+        default=None,
+        dest="tail",
+        help=("Number of rows to include in output, counting from back. "),
+        type=int,
+    )
+    parser.add_argument(
+        "--sample",
+        default=None,
+        dest="sample",
+        help=(
+            "Number of rows to include in output, sampled uniformly. "
+            "Pass --seed for deterministic behavior."
+        ),
+        type=int,
+    )
+    parser.add_argument(
+        "--seed",
+        default=None,
+        dest="seed",
+        help="Integer seed for deterministic behavior.",
+        type=int,
+    )
+    parser.add_argument(
         "--with-column",
         action="append",
         default=[],
@@ -303,6 +334,13 @@ def dataframe_cli(
         sys.exit(1)
 
     result = result.drop(args.drop)
+    if args.head is not None:
+        result = result.head(args.head)
+    if args.tail is not None:
+        # tail is not yet fully supported by polars lazy API
+        result = result.tail(args.tail).collect().lazy()
+    if args.sample is not None:
+        result = result.collect().sample(n=args.sample, seed=args.seed).lazy()
     result = output_dataframe_op(result).lazy()
 
     if args.shrink_dtypes:
