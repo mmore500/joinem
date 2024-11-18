@@ -11,15 +11,15 @@ python3 -m joinem --help
 python3 -m joinem --version
 
 
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.csv --how diagonal_relaxed --progress --eager-read
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.fea --how diagonal_relaxed --drop "a"
+find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.csv --how diagonal_relaxed --progress --eager-read --sample 10
+find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.fea --how diagonal_relaxed --drop "a" --tail 10
 find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.feather --how diagonal_relaxed
 find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.json --how diagonal_relaxed --shrink-dtypes
 find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.parquet --how diagonal_relaxed
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.pqt --how diagonal_relaxed --write-kwarg 'compression="lz4"' --write-kwarg 'maintain_order=False'
+find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.pqt --how diagonal_relaxed --write-kwarg 'compression="lz4"' --write-kwarg 'maintain_order=False' --tail 10
 
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.csv --progress --shrink-dtypes
-find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.fea
+find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.fea --head 1
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.feather
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.json
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.parquet
@@ -30,14 +30,14 @@ find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.fea
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.feather
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.json --shrink-dtypes
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.parquet
-find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.pqt
+find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.pqt --sample 4 --seed 2
 
 find assets/x.*pqt assets/y.*csv | python3 -m joinem out/xy.csv --how diagonal --progress
 find assets/x.*parquet assets/y.*csv | python3 -m joinem out/xy.fea --how diagonal --string-cache --shrink-dtypes
-find assets/x.*pqt assets/y.*parquet | python3 -m joinem out/xy.feather --how diagonal --shrink-dtypes
-find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy.json --how diagonal
-find assets/x.*pqt assets/y.*csv | python3 -m joinem out/xy.parquet --how diagonal --shrink-dtypes
-find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy.pqt --how diagonal
+find assets/x.*pqt assets/y.*parquet | python3 -m joinem out/xy.feather --how diagonal --shrink-dtypes --sample 4
+find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy.json --how diagonal --head 100 --tail 2 --sample 1
+find assets/x.*pqt assets/y.*csv | python3 -m joinem out/xy.parquet --how diagonal --shrink-dtypes --tail 10
+find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy.pqt --how diagonal --head 2 --tail 1 --seed 1
 
 find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy2.csv  --how diagonal --filter True --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")' --eager-read
 
