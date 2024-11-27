@@ -1,6 +1,6 @@
 [project]
 name = "joinem"
-version = "0.9.0"
+version = "0.9.1"
 description = "CLI for fast, flexbile concatenation of tabular data using Polars."
 authors = [
     { name = "Matthew Andres Moreno", email = "m.more500@gmail.com" },
