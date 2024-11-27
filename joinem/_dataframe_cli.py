@@ -17,12 +17,12 @@ def dataframe_cli(
     input_dataframe_op: typing.Callable = lambda x: x,
     output_dataframe_op: typing.Callable = lambda x: x,
 ) -> None:
+    parser = argparse.ArgumentParser(description=description)
+    parser = _add_parser_base(
+        parser=parser, dfcli_module=module, dfcli_version=version
+    )
     return _run_dataframe_cli(
-        base_parser=_make_parser_base(
-            description=description,
-            dfcli_module=module,
-            dfcli_version=version,
-        ),
+        base_parser=parser,
         input_dataframe_op=input_dataframe_op,
         output_dataframe_op=output_dataframe_op,
     )
@@ -131,18 +131,15 @@ def _eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
         sys.exit(1)
 
 
-def _make_parser_base(
+def _add_parser_base(
     *,
+    parser: argparse.ArgumentParser,
     dfcli_module: str,
     dfcli_version: str,
-    **kwargs: typing.Any,  # forwards to argparse.ArgumentParser initializer
 ) -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        **kwargs,
-        epilog=(
-            "Provide input filepaths via stdin. Example: "
-            f"find path/to/ -name '*.csv' | python3 -m {dfcli_module} out.csv"
-        ),
+    parser.epilog = (
+        "Provide input filepaths via stdin. Example: "
+        f"find path/to/ -name '*.csv' | python3 -m {dfcli_module} out.csv"
     )
     parser.add_argument(
         "--version", action="version", version=f"v{dfcli_version}"
