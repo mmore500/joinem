@@ -119,11 +119,13 @@ def dataframe_cli(
     description: str,
     module: str,
     version: str,
+    formatter_class: typing.Type[argparse.HelpFormatter] = argparse.HelpFormatter,
     input_dataframe_op: typing.Callable = lambda x: x,
     output_dataframe_op: typing.Callable = lambda x: x,
 ) -> None:
     parser = argparse.ArgumentParser(
         description=description,
+        formatter_class=formatter_class,
         epilog=(
             "Provide input filepaths via stdin. Example: "
             f"find path/to/ -name '*.csv' | python3 -m {module} out.csv"
