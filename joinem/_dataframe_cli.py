@@ -20,8 +20,8 @@ def dataframe_cli(
     return _run_dataframe_cli(
         base_parser=_make_parser_base(
             description=description,
-            module=module,
-            version=version,
+            dfcli_module=module,
+            dfcli_version=version,
         ),
         input_dataframe_op=input_dataframe_op,
         output_dataframe_op=output_dataframe_op,
@@ -133,18 +133,20 @@ def _eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
 
 def _make_parser_base(
     *,
-    module: str,
-    version: str,
+    dfcli_module: str,
+    dfcli_version: str,
     **kwargs: typing.Any,  # forwards to argparse.ArgumentParser initializer
 ) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         **kwargs,
         epilog=(
             "Provide input filepaths via stdin. Example: "
-            f"find path/to/ -name '*.csv' | python3 -m {module} out.csv"
+            f"find path/to/ -name '*.csv' | python3 -m {dfcli_module} out.csv"
         ),
     )
-    parser.add_argument("--version", action="version", version=f"v{version}")
+    parser.add_argument(
+        "--version", action="version", version=f"v{dfcli_version}"
+    )
     return parser
 
 
