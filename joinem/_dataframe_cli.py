@@ -9,7 +9,26 @@ import polars as pl
 from tqdm import tqdm
 
 
-def get_scanner(filepath: str) -> typing.Callable:
+def dataframe_cli(
+    *,
+    description: str,
+    module: str,
+    version: str,
+    input_dataframe_op: typing.Callable = lambda x: x,
+    output_dataframe_op: typing.Callable = lambda x: x,
+) -> None:
+    parser = argparse.ArgumentParser(description=description)
+    parser = _add_parser_base(
+        parser=parser, dfcli_module=module, dfcli_version=version
+    )
+    return _run_dataframe_cli(
+        base_parser=parser,
+        input_dataframe_op=input_dataframe_op,
+        output_dataframe_op=output_dataframe_op,
+    )
+
+
+def _get_scanner(filepath: str) -> typing.Callable:
     try:
         ext = os.path.splitext(filepath.replace("csv.gz", "csvgz"))[1]
         return {
@@ -26,7 +45,7 @@ def get_scanner(filepath: str) -> typing.Callable:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
-def get_reader(filepath: str) -> typing.Callable:
+def _get_reader(filepath: str) -> typing.Callable:
     try:
         ext = os.path.splitext(filepath.replace("csv.gz", "csvgz"))[1]
         return {
@@ -43,7 +62,7 @@ def get_reader(filepath: str) -> typing.Callable:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
-def get_sink(filepath: str) -> typing.Callable:
+def _get_sink(filepath: str) -> typing.Callable:
     try:
         ext = os.path.splitext(filepath)[1]
         return {
@@ -58,7 +77,7 @@ def get_sink(filepath: str) -> typing.Callable:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
-def get_write(filepath: str) -> typing.Callable:
+def _get_write(filepath: str) -> typing.Callable:
     try:
         ext = os.path.splitext(filepath)[1]
         return {
@@ -73,7 +92,7 @@ def get_write(filepath: str) -> typing.Callable:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
-def eval_column(with_column: str, filepath: str) -> pl.Expr:
+def _eval_column(with_column: str, filepath: str) -> pl.Expr:
     try:
         return eval(with_column)
     except Exception as e:
@@ -87,26 +106,24 @@ def eval_column(with_column: str, filepath: str) -> pl.Expr:
         sys.exit(1)
 
 
-def eval_filter(with_column: str) -> pl.Expr:
+def _eval_filter(with_column: str) -> pl.Expr:
     try:
         return eval(with_column)
     except Exception as e:
         logging.error(
-            "Failed to parse filter expression `%s`"
-            " error: %s",
+            "Failed to parse filter expression `%s`" " error: %s",
             with_column,
             e,
         )
 
 
-def eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
+def _eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
     to_eval = f"dict({','.join(kwargs_list)})"
     try:
         return eval(to_eval)
     except Exception as e:
         logging.error(
-            "Failed to parse kwarg expressions `%s` via `%s`"
-            " error: %s",
+            "Failed to parse kwarg expressions `%s` via `%s`" " error: %s",
             kwargs_list,
             to_eval,
             e,
@@ -114,24 +131,26 @@ def eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
         sys.exit(1)
 
 
-def dataframe_cli(
+def _add_parser_base(
     *,
-    description: str,
-    module: str,
-    version: str,
-    input_dataframe_op: typing.Callable = lambda x: x,
-    output_dataframe_op: typing.Callable = lambda x: x,
-) -> None:
-    parser = argparse.ArgumentParser(
-        description=description,
-        epilog=(
-            "Provide input filepaths via stdin. Example: "
-            f"find path/to/ -name '*.csv' | python3 -m {module} out.csv"
-        ),
+    parser: argparse.ArgumentParser,
+    dfcli_module: str,
+    dfcli_version: str,
+) -> argparse.ArgumentParser:
+    parser.epilog = (
+        "Provide input filepaths via stdin. Example: "
+        f"find path/to/ -name '*.csv' | python3 -m {dfcli_module} out.csv"
     )
     parser.add_argument(
-        "--version", action="version", version=f"v{version}"
+        "--version", action="version", version=f"v{dfcli_version}"
     )
+    return parser
+
+
+def _add_parser_core(
+    *,
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
     parser.add_argument("output_file", type=str, help="Output file name")
     parser.add_argument(
         "--progress", action="store_true", help="Show progress bar"
@@ -285,6 +304,17 @@ def dataframe_cli(
         ),
         type=str,
     )
+    return parser
+
+
+def _run_dataframe_cli(
+    *,
+    base_parser: argparse.ArgumentParser,
+    input_dataframe_op: typing.Callable = lambda x: x,
+    output_dataframe_op: typing.Callable = lambda x: x,
+) -> None:
+
+    parser = _add_parser_core(parser=base_parser)
     args = parser.parse_args()
 
     # silence warning...
@@ -296,23 +326,20 @@ def dataframe_cli(
         pl.enable_string_cache()
 
     lazy_frames = (
-        [get_scanner, get_reader][args.stdin or args.eager_read](
+        [_get_scanner, _get_reader][args.stdin or args.eager_read](
             filepath if args.input_filetype is None else args.input_filetype
         )(
             [filepath, sys.stdin.buffer][args.stdin],
-            **eval_kwargs(args.read_kwargs),
+            **_eval_kwargs(args.read_kwargs),
         )
         .with_columns(
             *(
-                eval_column(with_column, filepath)
+                _eval_column(with_column, filepath)
                 for with_column in args.with_columns
             ),
         )
         .filter(
-            *(
-                eval_filter(filter)
-                for filter in args.filters or ("True",)
-            ),
+            *(_eval_filter(filter) for filter in args.filters or ("True",)),
         )
         .lazy()
         for filepath in [
@@ -347,12 +374,12 @@ def dataframe_cli(
         # shrink_dtype is not yet fully supported by polars lazy API
         result = result.select(pl.all().shrink_dtype()).collect().lazy()
 
-    [get_sink, get_write][args.eager_write](
+    [_get_sink, _get_write][args.eager_write](
         args.output_file
         if args.output_filetype is None
         else args.output_filetype
     )(
         result.collect() if args.eager_write else result,
         args.output_file,
-        **eval_kwargs(args.write_kwargs),
+        **_eval_kwargs(args.write_kwargs),
     )
