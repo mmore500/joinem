@@ -149,19 +149,46 @@ def _add_parser_base(
 
 def _add_parser_core(
     *,
+    overridden_arguments: typing.Literal["error", "ignore", "warn"] = "error",
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
-    parser.add_argument("output_file", type=str, help="Output file name")
-    parser.add_argument(
-        "--progress", action="store_true", help="Show progress bar"
+    def _try_add_argument(
+        parser: argparse.ArgumentParser,
+        /,
+        *args: list,
+        **kwargs: dict,
+    ) -> None:
+        try:
+            parser.add_argument(*args, **kwargs)
+        except argparse.ArgumentError as e:
+            if overridden_arguments == "error":
+                raise e
+            elif overridden_arguments == "ignore":
+                pass
+            elif overridden_arguments == "warn":
+                warnings.warn(e)
+            else:
+                raise ValueError(
+                    f"{overridden_arguments=} must be one of "
+                    "'error', 'ignore', or 'warn'.",
+                )
+
+    _try_add_argument(parser, "output_file", type=str, help="Output file name")
+    _try_add_argument(
+        parser,
+        "--progress",
+        action="store_true",
+        help="Show progress bar",
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--stdin",
         action="store_true",
         default=False,
         help="Read data from stdin",
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--drop",
         action="append",
         default=[],
@@ -169,7 +196,8 @@ def _add_parser_core(
         help="Columns to drop.",
         type=str,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--eager-read",
         action="store_true",
         default=False,
@@ -178,7 +206,8 @@ def _add_parser_core(
             "Can improve performance in some cases."
         ),
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--eager-write",
         action="store_true",
         default=False,
@@ -187,7 +216,8 @@ def _add_parser_core(
             "Can improve performance in some cases."
         ),
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--filter",
         action="append",
         default=[],
@@ -199,21 +229,24 @@ def _add_parser_core(
         ),
         type=str,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--head",
         default=None,
         dest="head",
         help=("Number of rows to include in output, counting from front. "),
         type=int,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--tail",
         default=None,
         dest="tail",
         help=("Number of rows to include in output, counting from back. "),
         type=int,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--sample",
         default=None,
         dest="sample",
@@ -223,14 +256,16 @@ def _add_parser_core(
         ),
         type=int,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--seed",
         default=None,
         dest="seed",
         help="Integer seed for deterministic behavior.",
         type=int,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--with-column",
         action="append",
         default=[],
@@ -243,25 +278,29 @@ def _add_parser_core(
         ),
         type=str,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--shrink-dtypes",
         action="store_true",
         help="Shrink numeric columns to the minimal required datatype.",
         default=False,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--string-cache",
         action="store_true",
         help="Enable Polars global string cache.",
         default=False,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--how",
         choices=["vertical", "horizontal", "diagonal", "diagonal_relaxed"],
         default="vertical",
         help="How to concatenate frames. See <https://docs.pola.rs/py-polars/html/reference/api/polars.concat.html> for more information.",
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--input-filetype",
         action="store",
         help=(
@@ -270,13 +309,15 @@ def _add_parser_core(
         ),
         type=str,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--output-filetype",
         action="store",
         help="Filetype of output. Otherwise, inferred. Example: csv, parquet",
         type=str,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--read-kwarg",
         action="append",
         default=[],
@@ -290,7 +331,8 @@ def _add_parser_core(
         ),
         type=str,
     )
-    parser.add_argument(
+    _try_add_argument(
+        parser,
         "--write-kwarg",
         action="append",
         default=[],
@@ -312,9 +354,13 @@ def _run_dataframe_cli(
     base_parser: argparse.ArgumentParser,
     input_dataframe_op: typing.Callable = lambda x: x,
     output_dataframe_op: typing.Callable = lambda x: x,
+    overridden_arguments: typing.Literal["error", "ignore", "warn"] = "error",
 ) -> None:
 
-    parser = _add_parser_core(parser=base_parser)
+    parser = _add_parser_core(
+        overridden_arguments=overridden_arguments,
+        parser=base_parser,
+    )
     args = parser.parse_args()
 
     # silence warning...
