@@ -152,6 +152,14 @@ def _add_parser_core(
     overridden_arguments: typing.Literal["error", "ignore", "warn"] = "error",
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
+    if not parser.add_help:
+        parser.add_argument(
+            "--help",
+            "-h",
+            action="help",
+            help="show this help message and exit",
+        )
+
     def _try_add_argument(
         parser: argparse.ArgumentParser,
         /,
