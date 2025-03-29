@@ -42,11 +42,6 @@ Supported output types are feather, JSON, parquet, and csv.
 find -name '*.parquet' | python3 -m joinem out.json
 ```
 
-Use `--progress` to show a progress bar.
-```
-ls -1 path/{*.csv,*.pqt} | python3 -m joinem out.csv --progress
-```
-
 If file columns may mismatch, use `--how diagonal`.
 ```
 find path/to/ -name '*.csv' | python3 -m joinem out.csv --how diagonal
@@ -58,6 +53,8 @@ To run via Singularity/Apptainer,
 ```
 ls -1 *.csv | singularity run docker://ghcr.io/mmore500/joinem out.feather
 ```
+
+## Advanced Usage
 
 Add literal value column to output.
 ```
@@ -80,7 +77,6 @@ Read data from stdin and write data to stdout.
 cat foo.csv | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv
 ```
 
-Advanced usage.
 Write to parquet via stdout using `pv` to display progress, cast "myValue" column to categorical, and use lz4 for parquet compression.
 ```
 ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt --with-column 'pl.col("myValue").cast(pl.Categorical)' --write-kwarg 'compression="lz4"' | pv > concat.pqt
