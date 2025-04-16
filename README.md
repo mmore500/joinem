@@ -63,7 +63,10 @@ ls -1 *.csv | python3 -m joinem out.csv --with-column 'pl.lit(2).alias("two")'
 
 Cast a column to categorical in the output, shrink dtypes, and tune compression.
 ```
-ls -1 *.csv | python3 -m joinem out.pqt --with-column 'pl.col("uuid").cast(pl.Categorical)' --string-cache --shrink-dtypes --write-kwarg 'compression_level=10' --write-kwarg 'compression="zstd"'
+ls -1 *.csv | python3 -m joinem out.pqt \
+  --with-column 'pl.col("uuid").cast(pl.Categorical)' --string-cache \
+  --shrink-dtypes \
+  --write-kwarg 'compression_level=10' --write-kwarg 'compression="zstd"'
 ```
 
 Alias an existing column in the output.
@@ -79,12 +82,16 @@ ls -1 path/to/*.csv | python3 -m joinem out.csv \
 
 Read data from stdin and write data to stdout.
 ```
-cat foo.csv | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv
+cat foo.csv | python3 -m joinem "/dev/stdout" --stdin \
+  --output-filetype csv --input-filetype csv
 ```
 
 Write to parquet via stdout using `pv` to display progress, cast "myValue" column to categorical, and use lz4 for parquet compression.
 ```
-ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt --with-column 'pl.col("myValue").cast(pl.Categorical)' --write-kwarg 'compression="lz4"' | pv > concat.pqt
+ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
+  --with-column 'pl.col("myValue").cast(pl.Categorical)' \
+  --write-kwarg 'compression="lz4"' \
+  | pv > concat.pqt
 ```
 
 ## API
