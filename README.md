@@ -61,6 +61,11 @@ Add literal value column to output.
 ls -1 *.csv | python3 -m joinem out.csv --with-column 'pl.lit(2).alias("two")'
 ```
 
+Cast a column to categorical in the output, shrink dtypes, and tune compression.
+```
+ls -1 *.csv | python3 -m joinem out.pqt --with-column 'pl.col("uuid").cast(pl.Categorical)' --string-cache --shrink-dtypes --write-kwarg 'compression_level=10' --write-kwarg 'compression="zstd"'
+```
+
 Alias an existing column in the output.
 ```
 ls -1 *.csv | python3 -m joinem out.csv --with-column 'pl.col("a").alias("a2")'
