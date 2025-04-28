@@ -97,13 +97,12 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
 ## API
 
 ```
-usage: __main__.py [-h] [--version] [--progress] [--stdin] [--eager-read]
-                   [--eager-write] [--with-column WITH_COLUMNS]
-                   [--string-cache]
-                   [--how {vertical,horizontal,diagonal,diagonal_relaxed}]
-                   [--input-filetype INPUT_FILETYPE]
-                   [--output-filetype OUTPUT_FILETYPE]
-                   [--read-kwarg READ_KWARGS] [--write-kwarg WRITE_KWARGS]
+usage: __main__.py [-h] [--version] [--progress] [--stdin] [--drop DROP] [--eager-read] [--eager-write]
+                   [--filter FILTERS] [--head HEAD] [--tail TAIL] [--sample SAMPLE] [--seed SEED]
+                   [--with-column WITH_COLUMNS] [--shrink-dtypes] [--string-cache]
+                   [--how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}]
+                   [--input-filetype INPUT_FILETYPE] [--output-filetype OUTPUT_FILETYPE] [--read-kwarg READ_KWARGS]
+                   [--write-kwarg WRITE_KWARGS]
                    output_file
 
 CLI for fast, flexbile concatenation of tabular data using Polars.
@@ -131,11 +130,10 @@ options:
                         r"${1}").alias("filename stem")'
   --shrink-dtypes       Shrink numeric columns to the minimal required datatype.
   --string-cache        Enable Polars global string cache.
-  --how {vertical,horizontal,diagonal,diagonal_relaxed}
-                        How to concatenate frames. See
-                        <https://docs.pola.rs/py-
-                        polars/html/reference/api/polars.concat.html> for more
-                        information.
+ --how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}
+                        How to concatenate frames. See <https://docs.pola.rs/py-
+                        polars/html/reference/api/polars.concat.html> for more information.
+
   --input-filetype INPUT_FILETYPE
                         Filetype of input. Otherwise, inferred. Example: csv,
                         parquet, json, feather
