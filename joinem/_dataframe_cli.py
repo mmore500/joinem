@@ -303,7 +303,18 @@ def _add_parser_core(
     _try_add_argument(
         parser,
         "--how",
-        choices=["vertical", "horizontal", "diagonal", "diagonal_relaxed"],
+        choices=[
+            "vertical",
+            "vertical_relaxed",
+            "diagonal",
+            "diagonal_relaxed",
+            "horizontal",
+            "align",
+            "align_full",
+            "align_inner",
+            "align_left",
+            "align_right",
+        ],
         default="vertical",
         help="How to concatenate frames. See <https://docs.pola.rs/py-polars/html/reference/api/polars.concat.html> for more information.",
     )
