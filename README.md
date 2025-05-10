@@ -122,6 +122,14 @@ options:
                         in some cases.
   --filter FILTERS      Expression to be evaluated and passed to polars DataFrame.filter.
                         Example: 'pl.col("thing") == 0'
+  --head HEAD           Number of rows to include in output, counting from front.
+  --tail TAIL           Number of rows to include in output, counting from back.
+  --gather-every GATHER_EVERY
+                        Take every nth row.
+  --sample SAMPLE       Number of rows to include in output, sampled uniformly. Pass --seed
+                        for deterministic behavior.
+  --shuffle             Should output be shuffled? Pass --seed for deterministic behavior.
+  --seed SEED           Integer seed for deterministic behavior.
   --with-column WITH_COLUMNS
                         Expression to be evaluated to add a column, as access
                         to each datafile's filepath as `filepath` and polars
@@ -130,7 +138,7 @@ options:
                         r"${1}").alias("filename stem")'
   --shrink-dtypes       Shrink numeric columns to the minimal required datatype.
   --string-cache        Enable Polars global string cache.
- --how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}
+  --how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}
                         How to concatenate frames. See <https://docs.pola.rs/py-
                         polars/html/reference/api/polars.concat.html> for more information.
 
