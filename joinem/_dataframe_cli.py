@@ -255,6 +255,14 @@ def _add_parser_core(
     )
     _try_add_argument(
         parser,
+        "--gather-every",
+        default=None,
+        dest="gather_every",
+        help=("Take every nth row. "),
+        type=int,
+    )
+    _try_add_argument(
+        parser,
         "--sample",
         default=None,
         dest="sample",
@@ -442,6 +450,8 @@ def _run_dataframe_cli(
     if args.tail is not None:
         # tail is not yet fully supported by polars lazy API
         result = result.tail(args.tail).collect().lazy()
+    if args.gather_every is not None:
+        result = result.gather_every(args.gather_every)
     if args.sample is not None:
         result = result.collect().sample(n=args.sample, seed=args.seed).lazy()
     if args.shuffle:
