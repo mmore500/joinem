@@ -266,6 +266,17 @@ def _add_parser_core(
     )
     _try_add_argument(
         parser,
+        "--shuffle",
+        action="store_true",
+        dest="shuffle",
+        help=(
+            "Should output be shuffled? "
+            "Pass --seed for deterministic behavior."
+        ),
+        default=False,
+    )
+    _try_add_argument(
+        parser,
         "--seed",
         default=None,
         dest="seed",
@@ -433,6 +444,8 @@ def _run_dataframe_cli(
         result = result.tail(args.tail).collect().lazy()
     if args.sample is not None:
         result = result.collect().sample(n=args.sample, seed=args.seed).lazy()
+    if args.shuffle:
+        result = result.collect().sample(shuffle=True, seed=args.seed).lazy()
     result = output_dataframe_op(result).lazy()
 
     if args.shrink_dtypes:
