@@ -97,12 +97,16 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
 ## API
 
 ```
-usage: __main__.py [-h] [--version] [--progress] [--stdin] [--drop DROP] [--eager-read] [--eager-write]
-                   [--filter FILTERS] [--head HEAD] [--tail TAIL] [--sample SAMPLE] [--seed SEED]
-                   [--with-column WITH_COLUMNS] [--shrink-dtypes] [--string-cache]
+usage: __main__.py [-h] [--version] [--progress] [--stdin] [--drop DROP]
+                   [--select SELECT] [--eager-read] [--eager-write]
+                   [--filter FILTERS] [--head HEAD] [--tail TAIL]
+                   [--gather-every GATHER_EVERY] [--sample SAMPLE]
+                   [--shuffle] [--seed SEED] [--with-column WITH_COLUMNS]
+                   [--shrink-dtypes] [--string-cache]
                    [--how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}]
-                   [--input-filetype INPUT_FILETYPE] [--output-filetype OUTPUT_FILETYPE] [--read-kwarg READ_KWARGS]
-                   [--write-kwarg WRITE_KWARGS]
+                   [--input-filetype INPUT_FILETYPE]
+                   [--output-filetype OUTPUT_FILETYPE]
+                   [--read-kwarg READ_KWARGS] [--write-kwarg WRITE_KWARGS]
                    output_file
 
 CLI for fast, flexbile concatenation of tabular data using Polars.
@@ -113,42 +117,51 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   --version             show program's version number and exit
-  --progress            Show progress bar
-  --stdin               Read data from stdin
-  --drop DROP           Columns to drop.
-  --select SELECT       Columns to select. Default all.
-  --eager-read          Use read_* instead of scan_*. Can improve performance
-                        in some cases.
-  --eager-write         Use write_* instead of sink_*. Can improve performance
-                        in some cases.
-  --filter FILTERS      Expression to be evaluated and passed to polars DataFrame.filter.
-                        Example: 'pl.col("thing") == 0'
-  --head HEAD           Number of rows to include in output, counting from front.
-  --tail TAIL           Number of rows to include in output, counting from back.
+  --progress            Show progress bar.
+  --stdin               Read data from stdin.
+  --drop DROP           Column names to drop. Flag may be repeated to
+                        provide multiple column names.
+  --select SELECT       Column names to select; otherwise, all columns are
+                        selected. Flag may be repeated to provide multiple
+                        column names.
+  --eager-read          Use read_* instead of scan_*. Can improve
+                        performance in some cases.
+  --eager-write         Use write_* instead of sink_*. Can improve
+                        performance in some cases.
+  --filter FILTERS      Expression to be evaluated and passed to polars
+                        DataFrame.filter. Example: 'pl.col("thing") == 0'
+  --head HEAD           Number of rows to include in output, counting from
+                        front.
+  --tail TAIL           Number of rows to include in output, counting from
+                        back.
   --gather-every GATHER_EVERY
                         Take every nth row.
-  --sample SAMPLE       Number of rows to include in output, sampled uniformly. Pass --seed
-                        for deterministic behavior.
-  --shuffle             Should output be shuffled? Pass --seed for deterministic behavior.
+  --sample SAMPLE       Number of rows to include in output, sampled
+                        uniformly. Pass --seed for deterministic behavior.
+  --shuffle             Should output be shuffled? Pass --seed for
+                        deterministic behavior.
   --seed SEED           Integer seed for deterministic behavior.
   --with-column WITH_COLUMNS
-                        Expression to be evaluated to add a column, as access
-                        to each datafile's filepath as `filepath` and polars
-                        as `pl`. Example:
+                        Expression to be evaluated to add a column, has
+                        access to each datafile's filepath as `filepath` and
+                        polars as `pl`. Flag may be repeated to provide
+                        multiple expressions. Example:
                         'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv",
                         r"${1}").alias("filename stem")'
-  --shrink-dtypes       Shrink numeric columns to the minimal required datatype.
+  --shrink-dtypes       Shrink numeric columns to the minimal required
+                        datatype.
   --string-cache        Enable Polars global string cache.
   --how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}
-                        How to concatenate frames. See <https://docs.pola.rs/py-
-                        polars/html/reference/api/polars.concat.html> for more information.
-
+                        How to concatenate frames. See
+                        <https://docs.pola.rs/py-
+                        polars/html/reference/api/polars.concat.html> for
+                        more information.
   --input-filetype INPUT_FILETYPE
-                        Filetype of input. Otherwise, inferred. Example: csv,
-                        parquet, json, feather
+                        Filetype of input. Otherwise, inferred. Example:
+                        csv, parquet, json, feather
   --output-filetype OUTPUT_FILETYPE
-                        Filetype of output. Otherwise, inferred. Example: csv,
-                        parquet
+                        Filetype of output. Otherwise, inferred. Example:
+                        csv, parquet
   --read-kwarg READ_KWARGS
                         Additional keyword arguments to pass to pl.read_* or
                         pl.scan_* call(s). Provide as 'key=value'. Specify
@@ -156,8 +169,8 @@ options:
                         Arguments will be evaluated as Python expressions.
                         Example: 'infer_schema_length=None'
   --write-kwarg WRITE_KWARGS
-                        Additional keyword arguments to pass to pl.write_* or
-                        pl.sink_* call. Provide as 'key=value'. Specify
+                        Additional keyword arguments to pass to pl.write_*
+                        or pl.sink_* call. Provide as 'key=value'. Specify
                         multiple kwargs by using this flag multiple times.
                         Arguments will be evaluated as Python expressions.
                         Example: 'compression="lz4"'

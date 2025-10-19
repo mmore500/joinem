@@ -186,14 +186,14 @@ def _add_parser_core(
         parser,
         "--progress",
         action="store_true",
-        help="Show progress bar",
+        help="Show progress bar.",
     )
     _try_add_argument(
         parser,
         "--stdin",
         action="store_true",
         default=False,
-        help="Read data from stdin",
+        help="Read data from stdin.",
     )
     _try_add_argument(
         parser,
@@ -201,7 +201,10 @@ def _add_parser_core(
         action="append",
         default=[],
         dest="drop",
-        help="Columns to drop.",
+        help=(
+            "Column names to drop. "
+            "Flag may be repeated to provide multiple column names."
+        ),
         type=str,
     )
     _try_add_argument(
@@ -210,7 +213,10 @@ def _add_parser_core(
         action="append",
         default=[],
         dest="select",
-        help="Columns to select. Default all.",
+        help=(
+            "Column names to select; otherwise, all columns are selected. "
+            "Flag may be repeated to provide multiple column names."
+        ),
         type=str,
     )
     _try_add_argument(
@@ -309,6 +315,7 @@ def _add_parser_core(
         help=(
             "Expression to be evaluated to add a column, has access to each "
             "datafile's filepath as `filepath` and polars as `pl`. "
+            "Flag may be repeated to provide multiple expressions. "
             "Example: "
             r"""'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv", r"${1}").alias("filename stem")'"""
         ),
