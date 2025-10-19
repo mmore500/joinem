@@ -51,7 +51,7 @@ If some files may be empty, use `--how diagonal_relaxed`.
 
 To run via Singularity/Apptainer,
 ```
-ls -1 *.csv | singularity run docker://ghcr.io/mmore500/joinem:v0.11.0 out.feather
+ls -1 *.csv | singularity run docker://ghcr.io/mmore500/joinem:v0.11.1 out.feather
 ```
 
 ## Advanced Usage
