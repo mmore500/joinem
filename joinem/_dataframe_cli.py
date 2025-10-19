@@ -436,6 +436,7 @@ def _run_dataframe_cli(
             *(
                 _eval_column(with_column, filepath)
                 for with_column in args.with_columns
+                for column in _eval_column(f"[{with_column}]", filepath)
             ),
         )
         .filter(

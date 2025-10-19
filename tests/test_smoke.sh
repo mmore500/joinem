@@ -44,6 +44,8 @@ find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy2.csv  --how diagonal
 
 find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy3.csv  --how diagonal --filter 'pl.col("filename stem") == ".csv"' --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")' --eager-read --shrink-dtypes
 
+find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy3.csv  --how diagonal --filter 'pl.col("filename stem") == ".csv"' --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")' --with-column '*(pl.lit(i).alias(f"{i}") for i in range(10))' --shrink-dtypes
+
 find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy4.csv  --how diagonal --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")' --eager-read
 
 find assets/x.*csv assets/y.*csv | python3 -m joinem out/xy5.csv  --how diagonal --with-column 'pl.lit(filepath).str.replace(r".*/(.*)\.csv", r"${1}").alias("filename stem")'
