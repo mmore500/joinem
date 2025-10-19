@@ -116,6 +116,7 @@ options:
   --progress            Show progress bar
   --stdin               Read data from stdin
   --drop DROP           Columns to drop.
+  --select SELECT       Columns to select. Default all.
   --eager-read          Use read_* instead of scan_*. Can improve performance
                         in some cases.
   --eager-write         Use write_* instead of sink_*. Can improve performance

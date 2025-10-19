@@ -206,6 +206,15 @@ def _add_parser_core(
     )
     _try_add_argument(
         parser,
+        "--select",
+        action="append",
+        default=[],
+        dest="select",
+        help="Columns to select. Default all.",
+        type=str,
+    )
+    _try_add_argument(
+        parser,
         "--eager-read",
         action="store_true",
         default=False,
@@ -445,6 +454,8 @@ def _run_dataframe_cli(
         sys.exit(1)
 
     result = result.drop(args.drop)
+    if args.select:
+        result = result.select(args.select)
     if args.head is not None:
         result = result.head(args.head)
     if args.tail is not None:
