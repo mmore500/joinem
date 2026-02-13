@@ -58,9 +58,7 @@ namespaces = false
 [build-system]
 build-backend = "setuptools.build_meta"
 requires = [
-  "cython>=0.29",
   "setuptools >= 35.0.2",
-  "setuptools_scm >= 2.0.0, <3",
 ]
 
 [tool.black]
