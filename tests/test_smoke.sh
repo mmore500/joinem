@@ -61,3 +61,7 @@ cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --read-kwarg infer_
 cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv --shrink-dtypes > out/stdout
 
 cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv.gz --string-cache > out/stdout
+
+ls assets/horizontal{1,2}.pqt | python3 -m joinem out/horizontal.csv --how horizontal
+
+ls assets/horizontal{1,2}.pqt | python3 -m joinem out/horizontal.pqt --how horizontal --shrink-dtypes
