@@ -6,5 +6,5 @@ set -u
 cd "$(dirname "$0")"
 
 python3 -m uv pip compile "pyproject.toml" \
-    --extra "dev" --python-version "3.10" \
+    --extra "dev" --python-version "3.9" \
     | tee requirements.txt
