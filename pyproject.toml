@@ -48,6 +48,8 @@ dev = [
     "pip-tools==7.3.0",
     "ruff==0.1.11",
 ]
+rt64 = ["polars[rt64]"]
+rtcompat = ["polars[rtcompat]"]
 
 [tool.setuptools]
 include-package-data = true
