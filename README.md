@@ -94,6 +94,12 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
   | pv > concat.pqt
 ```
 
+Use `--init-eval` to configure Polars before processing begins, e.g., to set `pl.Config.set_engine_affinity` to prefer the streaming engine.
+```
+ls -1 *.csv | python3 -m joinem out.pqt \
+  --init-eval 'pl.Config.set_engine_affinity(engine="streaming")'
+```
+
 ## API
 
 ```
@@ -101,8 +107,9 @@ usage: __main__.py [-h] [--version] [--progress] [--stdin] [--drop DROP]
                    [--select SELECT] [--eager-read] [--eager-write]
                    [--filter FILTERS] [--head HEAD] [--tail TAIL]
                    [--gather-every GATHER_EVERY] [--sample SAMPLE]
-                   [--shuffle] [--seed SEED] [--with-column WITH_COLUMNS]
-                   [--shrink-dtypes] [--string-cache]
+                   [--shuffle] [--seed SEED] [--init-eval INIT_EVALS]
+                   [--with-column WITH_COLUMNS] [--shrink-dtypes]
+                   [--string-cache]
                    [--how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}]
                    [--input-filetype INPUT_FILETYPE]
                    [--output-filetype OUTPUT_FILETYPE]
@@ -141,6 +148,12 @@ options:
   --shuffle             Should output be shuffled? Pass --seed for
                         deterministic behavior.
   --seed SEED           Integer seed for deterministic behavior.
+  --init-eval INIT_EVALS
+                        Expression to be evaluated once for initialization
+                        side effects before any data is processed, has
+                        access to polars as `pl`. Flag may be repeated to
+                        provide multiple expressions. Example:
+                        'pl.Config.set_engine_affinity(engine="streaming")'
   --with-column WITH_COLUMNS
                         Expression to be evaluated to add a column, has
                         access to each datafile's filepath as `filepath` and

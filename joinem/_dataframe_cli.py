@@ -92,6 +92,18 @@ def _get_write(filepath: str) -> typing.Callable:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
+def _eval_init(init_eval: str) -> None:
+    try:
+        eval(init_eval)
+    except Exception as e:
+        logging.error(
+            "Failed to parse init-eval expression `%s` error: %s",
+            init_eval,
+            e,
+        )
+        sys.exit(1)
+
+
 def _eval_column(with_column: str, filepath: str) -> pl.Expr:
     try:
         return eval(with_column)
@@ -308,6 +320,21 @@ def _add_parser_core(
     )
     _try_add_argument(
         parser,
+        "--init-eval",
+        action="append",
+        default=[],
+        dest="init_evals",
+        help=(
+            "Expression to be evaluated once for initialization side "
+            "effects before any data is processed, has access to polars "
+            "as `pl`. Flag may be repeated to provide multiple "
+            "expressions. Example: "
+            r"""'pl.Config.set_engine_affinity(engine="streaming")'"""
+        ),
+        type=str,
+    )
+    _try_add_argument(
+        parser,
         "--with-column",
         action="append",
         default=[],
@@ -422,6 +449,9 @@ def _run_dataframe_cli(
     # UserWarning: Polars found a filename. Ensure you pass a path to the
     # file instead of a python file object when possible for best
     # performance.
+    for init_eval in args.init_evals:
+        _eval_init(init_eval)
+
     if args.string_cache:
         pl.enable_string_cache()
 

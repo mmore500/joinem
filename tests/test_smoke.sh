@@ -65,3 +65,7 @@ cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetyp
 ls assets/horizontal{1,2}.pqt | python3 -m joinem out/horizontal.csv --how horizontal
 
 ls assets/horizontal{1,2}.pqt | python3 -m joinem out/horizontal.pqt --how horizontal --shrink-dtypes
+
+find assets/x.*csv | python3 -m joinem out/init_eval.csv --init-eval 'pl.Config.set_engine_affinity(engine="streaming")'
+
+find assets/x.*csv assets/y.*csv | python3 -m joinem out/init_eval2.csv --how diagonal --init-eval 'pl.Config.set_engine_affinity(engine="streaming")' --init-eval 'pl.Config.set_tbl_rows(5)' --with-column 'pl.lit(2).alias("two")'
