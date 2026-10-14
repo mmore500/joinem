@@ -527,8 +527,6 @@ def _run_dataframe_cli(
     result = output_dataframe_op(result).lazy()
 
     if args.shrink_dtypes:
-        # Expr.shrink_dtype is a no-op as of polars 1.33 and removed in 2.0,
-        # so collect and shrink each Series instead
         result = result.collect()
         result = result.map_columns(
             result.columns, pl.Series.shrink_dtype
