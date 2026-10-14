@@ -305,7 +305,7 @@ def _add_parser_core(
         dest="sample",
         help=(
             "Number of rows to include in output, sampled uniformly. "
-            "Either an integer or a polars expression evaluating to one, "
+            "Accepts an integer or polars expression, "
             "with access to polars as `pl`. "
             "Sampling more rows than available raises an error; to sample "
             "up to a maximum, use an expression such as "
