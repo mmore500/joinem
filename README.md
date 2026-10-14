@@ -107,7 +107,7 @@ usage: __main__.py [-h] [--version] [--progress] [--stdin] [--drop DROP]
                    [--select SELECT] [--eager-read] [--eager-write]
                    [--filter FILTERS] [--head HEAD] [--tail TAIL]
                    [--gather-every GATHER_EVERY] [--sample SAMPLE]
-                   [--sample-up-to SAMPLE_UP_TO] [--shuffle] [--seed SEED] [--init-eval INIT_EVALS]
+                   [--shuffle] [--seed SEED] [--init-eval INIT_EVALS]
                    [--with-column WITH_COLUMNS] [--shrink-dtypes]
                    [--string-cache]
                    [--how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}]
@@ -144,12 +144,12 @@ options:
   --gather-every GATHER_EVERY
                         Take every nth row.
   --sample SAMPLE       Number of rows to include in output, sampled
-                        uniformly. Pass --seed for deterministic behavior.
-  --sample-up-to SAMPLE_UP_TO
-                        Maximum number of rows to include in output,
-                        sampled uniformly. If fewer rows are available, all
-                        rows are included (unlike --sample, which raises).
-                        Pass --seed for deterministic behavior.
+                        uniformly. Either an integer or a polars expression
+                        evaluating to one, with access to polars as `pl`.
+                        Sampling more rows than available raises an error;
+                        to sample up to a maximum, use an expression such as
+                        'pl.len().clip(upper_bound=100)'. Pass --seed for
+                        deterministic behavior.
   --shuffle             Should output be shuffled? Pass --seed for
                         deterministic behavior.
   --seed SEED           Integer seed for deterministic behavior.

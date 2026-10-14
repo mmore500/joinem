@@ -70,12 +70,12 @@ find assets/x.*csv | python3 -m joinem out/init_eval.csv --init-eval 'pl.Config.
 
 find assets/x.*csv assets/y.*csv | python3 -m joinem out/init_eval2.csv --how diagonal --init-eval 'pl.Config.set_engine_affinity(engine="streaming")' --init-eval 'pl.Config.set_tbl_rows(5)' --with-column 'pl.lit(2).alias("two")'
 
-# --sample-up-to: fewer rows than requested keeps all rows, otherwise caps
+# --sample with pl.len().clip(upper_bound=N) samples up to N rows: fewer rows than requested keeps all rows, otherwise caps
 find assets/x.0.csv | python3 -m joinem out/su_all.csv
 n_all=$(( $(wc -l < out/su_all.csv) - 1 ))
-find assets/x.0.csv | python3 -m joinem out/su_big.csv --sample-up-to $(( n_all + 100 ))
+find assets/x.0.csv | python3 -m joinem out/su_big.csv --sample "pl.len().clip(upper_bound=$(( n_all + 100 )))"
 [ "$(( $(wc -l < out/su_big.csv) - 1 ))" -eq "$n_all" ]
-find assets/x.0.csv | python3 -m joinem out/su_small.csv --sample-up-to 1 --seed 1
+find assets/x.0.csv | python3 -m joinem out/su_small.csv --sample "pl.len().clip(upper_bound=1)" --seed 1
 [ "$(( $(wc -l < out/su_small.csv) - 1 ))" -eq 1 ]
-find assets/x.0.csv | python3 -m joinem out/su_small2.csv --sample-up-to 1 --seed 1
+find assets/x.0.csv | python3 -m joinem out/su_small2.csv --sample "pl.len().clip(upper_bound=1)" --seed 1
 cmp out/su_small.csv out/su_small2.csv
