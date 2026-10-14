@@ -148,7 +148,7 @@ options:
   --sample-up-to SAMPLE_UP_TO
                         Maximum number of rows to include in output,
                         sampled uniformly. If fewer rows are available, all
-                        rows are included (unlike --sample, which errors).
+                        rows are included (unlike --sample, which raises).
                         Pass --seed for deterministic behavior.
   --shuffle             Should output be shuffled? Pass --seed for
                         deterministic behavior.
