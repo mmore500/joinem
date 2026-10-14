@@ -469,14 +469,7 @@ def _run_dataframe_cli(
 
     if args.string_cache:
         try:
-            with warnings.catch_warnings(record=True) as caught:
-                warnings.simplefilter("always", DeprecationWarning)
-                pl.enable_string_cache()
-            if caught:
-                logging.warning(
-                    "--string-cache is deprecated in polars %s.",
-                    pl.__version__,
-                )
+            pl.enable_string_cache()
         except AttributeError:
             logging.warning(
                 "--string-cache is unsupported in polars %s, ignoring.",
