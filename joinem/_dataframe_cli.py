@@ -307,7 +307,7 @@ def _add_parser_core(
         help=(
             "Maximum number of rows to include in output, sampled uniformly. "
             "If fewer rows are available, all rows are included "
-            "(unlike --sample, which errors). "
+            "(unlike --sample, which raises). "
             "Pass --seed for deterministic behavior."
         ),
         type=int,
