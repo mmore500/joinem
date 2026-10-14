@@ -23,7 +23,7 @@ classifiers = [
 requires-python = ">=3.9"
 license = {text = "MIT license"}
 dependencies = [
-  "polars>=1.26.0",
+  "polars>=1.33.0",
   "tqdm",
 ]
 
