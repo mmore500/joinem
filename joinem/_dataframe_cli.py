@@ -527,8 +527,12 @@ def _run_dataframe_cli(
     result = output_dataframe_op(result).lazy()
 
     if args.shrink_dtypes:
-        # shrink_dtype is not yet fully supported by polars lazy API
-        result = result.select(pl.all().shrink_dtype()).collect().lazy()
+        # Expr.shrink_dtype is a no-op as of polars 1.33 and removed in 2.0,
+        # so collect and shrink each Series instead
+        result = result.collect()
+        result = result.with_columns(
+            *(series.shrink_dtype() for series in result.get_columns()),
+        ).lazy()
 
     [_get_sink, _get_write][args.eager_write](
         args.output_file
