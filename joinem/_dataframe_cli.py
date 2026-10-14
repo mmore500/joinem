@@ -533,10 +533,11 @@ def _run_dataframe_cli(
     result = output_dataframe_op(result).lazy()
 
     if args.shrink_dtypes:
-        result = result.collect()
-        result = result.map_columns(
-            result.columns, pl.Series.shrink_dtype
-        ).lazy()
+        result = (
+            result.collect()
+            .map_columns(pl.selectors.all(), pl.Series.shrink_dtype)
+            .lazy()
+        )
 
     [_get_sink, _get_write][args.eager_write](
         args.output_file
