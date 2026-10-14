@@ -107,7 +107,7 @@ usage: __main__.py [-h] [--version] [--progress] [--stdin] [--drop DROP]
                    [--select SELECT] [--eager-read] [--eager-write]
                    [--filter FILTERS] [--head HEAD] [--tail TAIL]
                    [--gather-every GATHER_EVERY] [--sample SAMPLE]
-                   [--shuffle] [--seed SEED] [--init-eval INIT_EVALS]
+                   [--sample-up-to SAMPLE_UP_TO] [--shuffle] [--seed SEED] [--init-eval INIT_EVALS]
                    [--with-column WITH_COLUMNS] [--shrink-dtypes]
                    [--string-cache]
                    [--how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}]
@@ -145,6 +145,11 @@ options:
                         Take every nth row.
   --sample SAMPLE       Number of rows to include in output, sampled
                         uniformly. Pass --seed for deterministic behavior.
+  --sample-up-to SAMPLE_UP_TO
+                        Maximum number of rows to include in output,
+                        sampled uniformly. If fewer rows are available, all
+                        rows are included (unlike --sample, which errors).
+                        Pass --seed for deterministic behavior.
   --shuffle             Should output be shuffled? Pass --seed for
                         deterministic behavior.
   --seed SEED           Integer seed for deterministic behavior.

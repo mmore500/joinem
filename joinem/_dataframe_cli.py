@@ -301,6 +301,19 @@ def _add_parser_core(
     )
     _try_add_argument(
         parser,
+        "--sample-up-to",
+        default=None,
+        dest="sample_up_to",
+        help=(
+            "Maximum number of rows to include in output, sampled uniformly. "
+            "If fewer rows are available, all rows are included "
+            "(unlike --sample, which errors). "
+            "Pass --seed for deterministic behavior."
+        ),
+        type=int,
+    )
+    _try_add_argument(
+        parser,
         "--shuffle",
         action="store_true",
         dest="shuffle",
@@ -503,6 +516,11 @@ def _run_dataframe_cli(
         result = result.gather_every(args.gather_every)
     if args.sample is not None:
         result = result.collect().sample(n=args.sample, seed=args.seed).lazy()
+    if args.sample_up_to is not None:
+        collected = result.collect()
+        result = collected.sample(
+            n=min(args.sample_up_to, collected.height), seed=args.seed
+        ).lazy()
     if args.shuffle:
         result = result.collect().sample(shuffle=True, seed=args.seed).lazy()
     result = output_dataframe_op(result).lazy()
