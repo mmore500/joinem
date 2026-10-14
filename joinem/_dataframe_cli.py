@@ -517,10 +517,14 @@ def _run_dataframe_cli(
     if args.sample is not None:
         result = result.collect().sample(n=args.sample, seed=args.seed).lazy()
     if args.sample_up_to is not None:
-        collected = result.collect()
-        result = collected.sample(
-            n=min(args.sample_up_to, collected.height), seed=args.seed
-        ).lazy()
+        result = result.select(
+            pl.struct(pl.all())
+            .sample(
+                n=pl.min_horizontal(pl.len(), args.sample_up_to),
+                seed=args.seed,
+            )
+            .alias("__joinem_sampled__")
+        ).unnest("__joinem_sampled__")
     if args.shuffle:
         result = result.collect().sample(shuffle=True, seed=args.seed).lazy()
     result = output_dataframe_op(result).lazy()
