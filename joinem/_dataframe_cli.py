@@ -468,7 +468,20 @@ def _run_dataframe_cli(
         _eval_init(init_eval)
 
     if args.string_cache:
-        pl.enable_string_cache()
+        try:
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always", DeprecationWarning)
+                pl.enable_string_cache()
+            if caught:
+                logging.warning(
+                    "--string-cache is deprecated in polars %s.",
+                    pl.__version__,
+                )
+        except AttributeError:
+            logging.warning(
+                "--string-cache is unsupported in polars %s, ignoring.",
+                pl.__version__,
+            )
 
     lazy_frames = (
         [_get_scanner, _get_reader][args.stdin or args.eager_read](
