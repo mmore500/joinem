@@ -129,6 +129,16 @@ def _eval_filter(with_column: str) -> pl.Expr:
         )
 
 
+def _eval_sample(sample: str) -> typing.Union[int, pl.Expr]:
+    try:
+        return eval(sample)
+    except Exception as e:
+        logging.error(
+            "Failed to parse sample expression `%s` error: %s", sample, e
+        )
+        sys.exit(1)
+
+
 def _eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
     to_eval = f"dict({','.join(kwargs_list)})"
     try:
@@ -295,9 +305,14 @@ def _add_parser_core(
         dest="sample",
         help=(
             "Number of rows to include in output, sampled uniformly. "
+            "Accepts an integer or polars expression, "
+            "with access to polars as `pl`. "
+            "Sampling more rows than available raises an error; to sample "
+            "up to a maximum, use an expression such as "
+            r"""'pl.len().clip(upper_bound=100)'. """
             "Pass --seed for deterministic behavior."
         ),
-        type=int,
+        type=str,
     )
     _try_add_argument(
         parser,
@@ -502,7 +517,11 @@ def _run_dataframe_cli(
     if args.gather_every is not None:
         result = result.gather_every(args.gather_every)
     if args.sample is not None:
-        result = result.collect().sample(n=args.sample, seed=args.seed).lazy()
+        result = result.select(
+            pl.struct(pl.all())
+            .sample(n=_eval_sample(args.sample), seed=args.seed)
+            .alias("__joinem_sampled__")
+        ).unnest("__joinem_sampled__")
     if args.shuffle:
         result = result.collect().sample(shuffle=True, seed=args.seed).lazy()
     result = output_dataframe_op(result).lazy()
