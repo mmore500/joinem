@@ -116,8 +116,8 @@ usage: __main__.py [-h] [--version] [--progress] [--stdin] [--drop DROP]
                    [--select SELECT] [--eager-read] [--eager-write]
                    [--filter FILTERS] [--head HEAD] [--tail TAIL]
                    [--gather-every GATHER_EVERY] [--sample SAMPLE]
-                   [--sample-stratify SAMPLE_STRATIFY]
-                   [--shuffle] [--seed SEED] [--init-eval INIT_EVALS]
+                   [--sample-stratify SAMPLE_STRATIFY] [--shuffle]
+                   [--seed SEED] [--init-eval INIT_EVALS]
                    [--with-column WITH_COLUMNS] [--shrink-dtypes]
                    [--string-cache]
                    [--how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}]
@@ -154,12 +154,12 @@ options:
   --gather-every GATHER_EVERY
                         Take every nth row.
   --sample SAMPLE       Number of rows to include in output, sampled
-                        uniformly. Accepts an integer, a float (fraction of rows), or polars expression,
-                        with access to polars as `pl`.
-                        Sampling more rows than available raises an error;
-                        to sample up to a maximum, use an expression such as
-                        'pl.len().clip(upper_bound=100)'. Pass --seed for
-                        deterministic behavior.
+                        uniformly. Accepts an integer, a float (fraction of
+                        rows), or polars expression, with access to polars
+                        as `pl`. Sampling more rows than available raises an
+                        error; to sample up to a maximum, use an expression
+                        such as 'pl.len().clip(upper_bound=100)'. Pass
+                        --seed for deterministic behavior.
   --sample-stratify SAMPLE_STRATIFY
                         Expression to stratify --sample by, so that the
                         sample size applies to each distinct value (or
