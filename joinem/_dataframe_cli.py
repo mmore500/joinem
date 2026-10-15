@@ -220,8 +220,7 @@ def _add_parser_core(
         "--progress",
         action="store_true",
         help=(
-            "Log bytes written and write throughput. "
-            "Requires /dev/fd (i.e., not supported on Windows)."
+            "Log bytes written and write throughput."
         ),
     )
     _try_add_argument(
