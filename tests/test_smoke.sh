@@ -93,6 +93,18 @@ assert pl.read_ndjson("out/stdout.json.gz").equals(
 )
 PY
 
+# jsonl and ndjson aliases
+for ext in jsonl jsonl.gz jsonl.zst ndjson ndjson.gz ndjson.zst; do
+  find assets/x.*.json | python3 -m joinem "out/xa.${ext}"
+  find assets/x.*.json | python3 -m joinem "out/xa2.${ext}" --eager-write
+  echo "out/xa.${ext}" | python3 -m joinem "out/xa_${ext}.json"
+  echo "out/xa2.${ext}" | python3 -m joinem "out/xa2_${ext}.json" --eager-read
+  cmp "out/xa_${ext}.json" out/xa_jsonl.json
+  cmp "out/xa2_${ext}.json" out/xa_jsonl.json
+done
+cat out/xa.ndjson.zst | python3 -m joinem /dev/stdout --stdin --input-filetype ndjson.zst --output-filetype jsonl.gz > out/stdout.jsonl.gz
+python3 -c 'import polars as pl; assert pl.read_ndjson("out/stdout.jsonl.gz").equals(pl.read_ndjson("out/xa_jsonl.json"))'
+
 ls assets/horizontal{1,2}.pqt | python3 -m joinem out/horizontal.csv --how horizontal
 
 ls assets/horizontal{1,2}.pqt | python3 -m joinem out/horizontal.pqt --how horizontal --shrink-dtypes
