@@ -62,6 +62,31 @@ cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetyp
 
 cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv.gz --string-cache > out/stdout
 
+# compressed input and output
+find assets/x.*.json assets/x.*.json.gz assets/x.*.json.zst | python3 -m joinem out/xc.json
+find assets/x.*.csv.gz | python3 -m joinem out/xc.csv.gz
+find assets/x.*.csv.gz | python3 -m joinem out/xc2.csv.gz --eager-read --eager-write --progress
+find assets/x.*.json | python3 -m joinem out/xc.json.gz
+find assets/x.*.json | python3 -m joinem out/xc.json.zst --eager-write
+find assets/x.*.json | python3 -m joinem out/xc2.json.zst --progress
+cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --input-filetype csv --output-filetype csv.gz > out/stdout.csv.gz
+cat assets/x.0.json.zst | python3 -m joinem "/dev/stdout" --stdin --input-filetype json.zst --output-filetype json.gz > out/stdout.json.gz
+python3 - <<'PY'
+import gzip
+import polars as pl
+
+with gzip.open("out/xc.csv.gz") as f:
+    assert pl.read_csv(f.read()).equals(pl.read_csv("out/xc2.csv.gz"))
+assert pl.read_csv("out/xc.csv.gz").height == 6
+assert pl.read_csv("out/stdout.csv.gz").equals(pl.read_csv("assets/x.0.csv"))
+for p in "out/xc.json.gz", "out/xc.json.zst", "out/xc2.json.zst":
+    assert pl.read_ndjson(p).equals(pl.read_ndjson("out/xc.json.gz")), p
+assert pl.read_ndjson("out/xc.json").height == 9
+assert pl.read_ndjson("out/stdout.json.gz").equals(
+    pl.read_ndjson("assets/x.0.json")
+)
+PY
+
 ls assets/horizontal{1,2}.pqt | python3 -m joinem out/horizontal.csv --how horizontal
 
 ls assets/horizontal{1,2}.pqt | python3 -m joinem out/horizontal.pqt --how horizontal --shrink-dtypes

@@ -1,5 +1,7 @@
 import argparse
 import contextlib
+import functools
+import inspect
 import logging
 import os
 import subprocess
@@ -29,26 +31,54 @@ def dataframe_cli(
     )
 
 
+_compression_exts = (".gz", ".zst")
+
+
+def _get_ext(filepath: str) -> str:
+    # e.g., "foo.csv.gz" -> ".csv.gz", "csv.gz" -> ".csv.gz", "csv" -> ".csv"
+    root, ext = os.path.splitext(filepath)
+    if ext in _compression_exts:
+        root, inner = os.path.splitext(root)
+        ext = (inner or f".{root}") + ext
+    return ext or f".{filepath}"
+
+
+def _with_compression(
+    writer: typing.Callable, compression: str
+) -> typing.Callable:
+    if "compression" not in inspect.signature(writer).parameters:
+        raise ValueError(
+            f"{compression} compression for {writer.__qualname__} "
+            f"is unsupported in polars {pl.__version__}, upgrade polars",
+        )
+    # check_extension=False allows writing to /dev/stdout and /dev/fd/*
+    return functools.partial(
+        writer, compression=compression, check_extension=False
+    )
+
+
 def _get_scanner(filepath: str) -> typing.Callable:
     try:
-        ext = os.path.splitext(filepath.replace("csv.gz", "csvgz"))[1]
+        ext = _get_ext(filepath)
         return {
             ".csv": pl.scan_csv,
-            ".csvgz": pl.read_csv,  # gz scan not yet supported by polars
-            ".csv.gz": pl.read_csv,  # gz scan not yet supported by polars
+            ".csvgz": pl.scan_csv,
+            ".csv.gz": pl.scan_csv,
             ".fea": pl.read_ipc,  # scan not yet supported by polars
             ".feather": pl.read_ipc,  # scan not yet supported by polars
             ".json": pl.read_ndjson,  # scan not yet supported by polars
+            ".json.gz": pl.read_ndjson,
+            ".json.zst": pl.read_ndjson,
             ".parquet": pl.scan_parquet,
             ".pqt": pl.scan_parquet,
-        }[ext or f".{filepath}"]
+        }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
 def _get_reader(filepath: str) -> typing.Callable:
     try:
-        ext = os.path.splitext(filepath.replace("csv.gz", "csvgz"))[1]
+        ext = _get_ext(filepath)
         return {
             ".csv": pl.read_csv,
             ".csvgz": pl.read_csv,
@@ -56,39 +86,59 @@ def _get_reader(filepath: str) -> typing.Callable:
             ".fea": pl.read_ipc,
             ".feather": pl.read_ipc,
             ".json": pl.read_ndjson,
+            ".json.gz": pl.read_ndjson,
+            ".json.zst": pl.read_ndjson,
             ".parquet": pl.read_parquet,
             ".pqt": pl.read_parquet,
-        }[ext or f".{filepath}"]
+        }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
 def _get_sink(filepath: str) -> typing.Callable:
+    ext = _get_ext(filepath)
     try:
-        ext = os.path.splitext(filepath)[1]
         return {
-            ".csv": pl.LazyFrame.sink_csv,
-            ".fea": pl.LazyFrame.sink_ipc,
-            ".feather": pl.LazyFrame.sink_ipc,
-            ".json": pl.LazyFrame.sink_ndjson,
-            ".parquet": pl.LazyFrame.sink_parquet,
-            ".pqt": pl.LazyFrame.sink_parquet,
-        }[ext or f".{filepath}"]
+            ".csv": lambda: pl.LazyFrame.sink_csv,
+            ".csv.gz": lambda: _with_compression(
+                pl.LazyFrame.sink_csv, "gzip"
+            ),
+            ".fea": lambda: pl.LazyFrame.sink_ipc,
+            ".feather": lambda: pl.LazyFrame.sink_ipc,
+            ".json": lambda: pl.LazyFrame.sink_ndjson,
+            ".json.gz": lambda: _with_compression(
+                pl.LazyFrame.sink_ndjson, "gzip"
+            ),
+            ".json.zst": lambda: _with_compression(
+                pl.LazyFrame.sink_ndjson, "zstd"
+            ),
+            ".parquet": lambda: pl.LazyFrame.sink_parquet,
+            ".pqt": lambda: pl.LazyFrame.sink_parquet,
+        }[ext]()
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
 def _get_write(filepath: str) -> typing.Callable:
+    ext = _get_ext(filepath)
     try:
-        ext = os.path.splitext(filepath)[1]
         return {
-            ".csv": pl.DataFrame.write_csv,
-            ".fea": pl.DataFrame.write_ipc,
-            ".feather": pl.DataFrame.write_ipc,
-            ".json": pl.DataFrame.write_ndjson,
-            ".parquet": pl.DataFrame.write_parquet,
-            ".pqt": pl.DataFrame.write_parquet,
-        }[ext or f".{filepath}"]
+            ".csv": lambda: pl.DataFrame.write_csv,
+            ".csv.gz": lambda: _with_compression(
+                pl.DataFrame.write_csv, "gzip"
+            ),
+            ".fea": lambda: pl.DataFrame.write_ipc,
+            ".feather": lambda: pl.DataFrame.write_ipc,
+            ".json": lambda: pl.DataFrame.write_ndjson,
+            ".json.gz": lambda: _with_compression(
+                pl.DataFrame.write_ndjson, "gzip"
+            ),
+            ".json.zst": lambda: _with_compression(
+                pl.DataFrame.write_ndjson, "zstd"
+            ),
+            ".parquet": lambda: pl.DataFrame.write_parquet,
+            ".pqt": lambda: pl.DataFrame.write_parquet,
+        }[ext]()
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 

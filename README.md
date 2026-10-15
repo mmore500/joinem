@@ -24,7 +24,9 @@
 - Supports CSV and parquet input files.
     - Due to current polars limitations, JSON and feather files are not supported.
     - Input formats may be mixed.
+    - Compressed input files `.csv.gz`, `.json.gz`, and `.json.zst` are supported.
 - Supports output to CSV, JSON, parquet, and feather file types.
+    - Compressed output to `.csv.gz`, `.json.gz`, and `.json.zst` is supported (requires a recent polars).
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Logs bytes written and write throughput with `--progress`.
 - Add programatically-generated columns to output.
@@ -78,6 +80,11 @@ Apply regex on source datafile paths to create new column in output.
 ```
 ls -1 path/to/*.csv | python3 -m joinem out.csv \
   --with-column 'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv", r"${1}").alias("filename stem")'
+```
+
+Write gzip-compressed CSV output; compression is inferred from the output file extension.
+```
+ls -1 *.csv.gz | python3 -m joinem out.csv.gz
 ```
 
 Read data from stdin and write data to stdout.
