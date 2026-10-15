@@ -21,12 +21,14 @@
 ## Features
 
 - Lazily streams I/O to expeditiously handle numerous large files.
-- Supports CSV, JSON (newline-delimited; `.json`, `.jsonl`, or `.ndjson`), parquet, and feather input files.
+- Supports CSV, JSON, parquet, and feather input files.
+    - JSON input must be newline-delimited (`.json`, `.jsonl`, or `.ndjson`).
+    - Compressed input is supported: `.csv.gz`, `.csv.zst`, `.json.gz`, `.json.zst`, `.jsonl.gz`, `.jsonl.zst`, `.ndjson.gz`, and `.ndjson.zst`.
     - Feather files are read eagerly rather than streamed.
     - Input formats may be mixed.
-    - Compressed input files `.csv.gz`, `.csv.zst`, `.json.gz`, and `.json.zst` are supported (likewise `.jsonl` and `.ndjson`).
-- Supports output to CSV, JSON, parquet, and feather file types.
-    - Compressed output to `.csv.gz`, `.csv.zst`, `.json.gz`, and `.json.zst` is supported, likewise `.jsonl` and `.ndjson` (requires a recent polars).
+- Supports CSV, JSON, parquet, and feather output files.
+    - JSON output is newline-delimited (`.json`, `.jsonl`, or `.ndjson`).
+    - Compressed output is supported: `.csv.gz`, `.csv.zst`, `.json.gz`, `.json.zst`, `.jsonl.gz`, `.jsonl.zst`, `.ndjson.gz`, and `.ndjson.zst` (requires a recent polars).
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Logs bytes written and write throughput with `--progress`.
 - Add programatically-generated columns to output.
