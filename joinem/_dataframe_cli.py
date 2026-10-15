@@ -233,24 +233,14 @@ def _eval_filter(with_column: str) -> pl.Expr:
         )
 
 
-def _eval_sample(sample: str) -> typing.Union[int, float, pl.Expr]:
+def _eval_sample(
+    expr: str, label: str = "sample"
+) -> typing.Union[int, float, pl.Expr]:
     try:
-        return eval(sample)
+        return eval(expr)
     except Exception as e:
         logging.error(
-            "Failed to parse sample expression `%s` error: %s", sample, e
-        )
-        sys.exit(1)
-
-
-def _eval_stratify(stratify: str) -> pl.Expr:
-    try:
-        return eval(stratify)
-    except Exception as e:
-        logging.error(
-            "Failed to parse sample-stratify expression `%s` error: %s",
-            stratify,
-            e,
+            "Failed to parse %s expression `%s` error: %s", label, expr, e
         )
         sys.exit(1)
 
@@ -657,7 +647,10 @@ def _run_dataframe_cli(
         )
         if args.sample_stratify:
             sampled = sampled.over(
-                *map(_eval_stratify, args.sample_stratify),
+                *(
+                    _eval_sample(x, "sample-stratify")
+                    for x in args.sample_stratify
+                ),
                 mapping_strategy="explode",
             )
         result = result.select(sampled.alias("__joinem_sampled__")).unnest(
