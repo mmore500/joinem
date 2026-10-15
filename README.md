@@ -26,7 +26,7 @@
     - Input formats may be mixed.
 - Supports output to CSV, JSON, parquet, and feather file types.
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
-- Provides a progress bar with `--progress`.
+- Logs output size and write throughput with `--progress` (use `pv` when writing to a pipe).
 - Add programatically-generated columns to output.
 
 ## Example Usage
@@ -124,7 +124,9 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   --version             show program's version number and exit
-  --progress            Show progress bar.
+  --progress            Periodically log output file size and write
+                        throughput. Has no effect when writing to a pipe;
+                        use `pv` instead.
   --stdin               Read data from stdin.
   --drop DROP           Column names to drop. Flag may be repeated to
                         provide multiple column names.

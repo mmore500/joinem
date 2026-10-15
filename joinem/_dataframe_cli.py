@@ -2,11 +2,12 @@ import argparse
 import logging
 import os
 import sys
+import threading
+import time
 import typing
 import warnings
 
 import polars as pl
-from tqdm import tqdm
 
 
 def dataframe_cli(
@@ -90,6 +91,24 @@ def _get_write(filepath: str) -> typing.Callable:
         }[ext or f".{filepath}"]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
+
+
+def _log_write_throughput(filepath: str, interval: float = 5.0) -> None:
+    start = prev_time = time.monotonic()
+    prev_size = 0
+    while True:
+        time.sleep(interval)
+        try:
+            size = os.stat(filepath).st_size
+        except OSError:
+            continue
+        now = time.monotonic()
+        print(
+            f"joinem: {now - start:.0f}s elapsed, {size / 1e6:.1f} MB "
+            f"written, {(size - prev_size) / 1e6 / (now - prev_time):.2f} MB/s",
+            file=sys.stderr,
+        )
+        prev_size, prev_time = size, now
 
 
 def _eval_init(init_eval: str) -> None:
@@ -208,7 +227,10 @@ def _add_parser_core(
         parser,
         "--progress",
         action="store_true",
-        help="Show progress bar.",
+        help=(
+            "Periodically log output file size and write throughput. "
+            "Has no effect when writing to a pipe; use `pv` instead."
+        ),
     )
     _try_add_argument(
         parser,
@@ -500,9 +522,6 @@ def _run_dataframe_cli(
         ][args.stdin]
     )
     lazy_frames = map(lambda x: x.lazy(), map(input_dataframe_op, lazy_frames))
-    if args.progress:
-        lazy_frames = tqdm(lazy_frames)
-
     try:
         result = pl.concat(lazy_frames, how=args.how, rechunk=False)
     except ValueError as e:
@@ -538,6 +557,13 @@ def _run_dataframe_cli(
             .map_columns(pl.selectors.all(), pl.Series.shrink_dtype)
             .lazy()
         )
+
+    if args.progress:
+        threading.Thread(
+            target=_log_write_throughput,
+            args=(args.output_file,),
+            daemon=True,
+        ).start()
 
     [_get_sink, _get_write][args.eager_write](
         args.output_file
