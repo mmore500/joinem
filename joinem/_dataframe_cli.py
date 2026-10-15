@@ -35,8 +35,8 @@ def _get_ext(filepath: str) -> str:
     # e.g., "dir/x.0.csv.gz" -> ".csv.gz", "csv.gz" -> ".csv.gz", "csv" -> ".csv"
     uncompressed = filepath.removesuffix(".gz").removesuffix(".zst")
     compression = filepath[len(uncompressed) :]
-    ext = os.path.splitext(uncompressed)[1] or f".{uncompressed}"
-    return ext + compression
+    root, ext = os.path.splitext(uncompressed)
+    return (ext or f".{root}") + compression
 
 
 def _make_compressed_writer(
