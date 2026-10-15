@@ -440,7 +440,10 @@ def _add_parser_core(
             "Expression to stratify --sample by, so that the sample size "
             "applies to each distinct value (or combination of values, if "
             "repeated). Has access to polars as `pl`. Example: "
-            r"""'pl.col("thing")'"""
+            r"""'pl.col("thing")'. """
+            "To sample up to a maximum per group, combine with a --sample "
+            "expression such as "
+            r"""'pl.len().clip(upper_bound=100)'."""
         ),
         type=str,
     )

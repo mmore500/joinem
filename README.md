@@ -164,7 +164,10 @@ options:
                         Expression to stratify --sample by, so that the
                         sample size applies to each distinct value (or
                         combination of values, if repeated). Has access to
-                        polars as `pl`. Example: 'pl.col("thing")'
+                        polars as `pl`. Example: 'pl.col("thing")'. To
+                        sample up to a maximum per group, combine with a
+                        --sample expression such as
+                        'pl.len().clip(upper_bound=100)'.
   --shuffle             Should output be shuffled? Pass --seed for
                         deterministic behavior.
   --seed SEED           Integer seed for deterministic behavior.
