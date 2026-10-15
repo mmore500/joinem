@@ -33,9 +33,10 @@ def dataframe_cli(
 
 def _get_ext(filepath: str) -> str:
     # e.g., "dir/x.0.csv.gz" -> ".csv.gz", "csv.gz" -> ".csv.gz", "csv" -> ".csv"
-    parts = os.path.basename(filepath).split(".")
-    is_compressed = parts[-1] in ("gz", "zst")
-    return "." + ".".join(parts[-2:] if is_compressed else parts[-1:])
+    uncompressed = filepath.removesuffix(".gz").removesuffix(".zst")
+    compression = filepath[len(uncompressed) :]
+    ext = os.path.splitext(uncompressed)[1] or f".{uncompressed}"
+    return ext + compression
 
 
 def _make_compressed_writer(
