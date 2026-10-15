@@ -219,9 +219,7 @@ def _add_parser_core(
         parser,
         "--progress",
         action="store_true",
-        help=(
-            "Log bytes written and write throughput."
-        ),
+        help="Log bytes written and write throughput.",
     )
     _try_add_argument(
         parser,
