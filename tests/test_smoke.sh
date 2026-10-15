@@ -11,13 +11,13 @@ python3 -m joinem --help
 python3 -m joinem --version
 
 
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.csv --how diagonal_relaxed --progress --eager-read --sample 10
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.fea --how diagonal_relaxed --drop "a" --tail 10 --shuffle
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.fea --how diagonal_relaxed --select "a" --tail 10 --shuffle
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.feather --how diagonal_relaxed
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.json --how diagonal_relaxed --shrink-dtypes --gather-every 3
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.parquet --how diagonal_relaxed --shuffle
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.pqt --how diagonal_relaxed --write-kwarg 'compression="lz4"' --write-kwarg 'maintain_order=False' --tail 10 --gather-every 1
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.csv --how diagonal_relaxed --progress --eager-read --sample 10
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.fea --how diagonal_relaxed --drop "a" --tail 10 --shuffle
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.fea --how diagonal_relaxed --select "a" --tail 10 --shuffle
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.feather --how diagonal_relaxed
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.json --how diagonal_relaxed --shrink-dtypes --gather-every 3
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.parquet --how diagonal_relaxed --shuffle
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.pqt --how diagonal_relaxed --write-kwarg 'compression="lz4"' --write-kwarg 'maintain_order=False' --tail 10 --gather-every 1
 
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.csv --progress --shrink-dtypes
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.fea --head 1
@@ -66,6 +66,9 @@ cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetyp
 find assets/x.*.json assets/x.*.json.gz assets/x.*.json.zst | python3 -m joinem out/xc.json
 find assets/x.*.csv.gz | python3 -m joinem out/xc.csv.gz
 find assets/x.*.csv.gz | python3 -m joinem out/xc2.csv.gz --eager-read --eager-write --progress
+find assets/x.*.csv assets/x.*.csv.gz assets/x.*.csv.zst | python3 -m joinem out/xc.csv.zst
+find assets/x.*.csv.zst | python3 -m joinem out/xc2.csv.zst --eager-read --eager-write --progress
+cat assets/x.0.csv.zst | python3 -m joinem "/dev/stdout" --stdin --input-filetype csv.zst --output-filetype csv.zst > out/stdout.csv.zst
 find assets/x.*.json | python3 -m joinem out/xc.json.gz
 find assets/x.*.json | python3 -m joinem out/xc.json.zst --eager-write
 find assets/x.*.json | python3 -m joinem out/xc2.json.zst --progress
@@ -82,6 +85,9 @@ assert pl.read_csv("out/stdout.csv.gz").equals(pl.read_csv("assets/x.0.csv"))
 for p in "out/xc.json.gz", "out/xc.json.zst", "out/xc2.json.zst":
     assert pl.read_ndjson(p).equals(pl.read_ndjson("out/xc.json.gz")), p
 assert pl.read_ndjson("out/xc.json").height == 9
+assert pl.read_csv("out/xc.csv.zst").height == 18
+assert pl.read_csv("out/xc2.csv.zst").equals(pl.read_csv("out/xc.csv.gz"))
+assert pl.read_csv("out/stdout.csv.zst").equals(pl.read_csv("assets/x.0.csv"))
 assert pl.read_ndjson("out/stdout.json.gz").equals(
     pl.read_ndjson("assets/x.0.json")
 )

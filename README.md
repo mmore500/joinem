@@ -21,12 +21,12 @@
 ## Features
 
 - Lazily streams I/O to expeditiously handle numerous large files.
-- Supports CSV and parquet input files.
-    - Due to current polars limitations, JSON and feather files are not supported.
+- Supports CSV, JSON (newline-delimited), parquet, and feather input files.
+    - Feather files are read eagerly rather than streamed.
     - Input formats may be mixed.
-    - Compressed input files `.csv.gz`, `.json.gz`, and `.json.zst` are supported.
+    - Compressed input files `.csv.gz`, `.csv.zst`, `.json.gz`, and `.json.zst` are supported.
 - Supports output to CSV, JSON, parquet, and feather file types.
-    - Compressed output to `.csv.gz`, `.json.gz`, and `.json.zst` is supported (requires a recent polars).
+    - Compressed output to `.csv.gz`, `.csv.zst`, `.json.gz`, and `.json.zst` is supported (requires a recent polars).
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Logs bytes written and write throughput with `--progress`.
 - Add programatically-generated columns to output.

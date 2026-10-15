@@ -64,11 +64,12 @@ def _get_scanner(filepath: str) -> typing.Callable:
             ".csv": pl.scan_csv,
             ".csvgz": pl.scan_csv,
             ".csv.gz": pl.scan_csv,
+            ".csv.zst": pl.scan_csv,
             ".fea": pl.read_ipc,  # scan not yet supported by polars
             ".feather": pl.read_ipc,  # scan not yet supported by polars
-            ".json": pl.read_ndjson,  # scan not yet supported by polars
-            ".json.gz": pl.read_ndjson,
-            ".json.zst": pl.read_ndjson,
+            ".json": pl.scan_ndjson,
+            ".json.gz": pl.scan_ndjson,
+            ".json.zst": pl.scan_ndjson,
             ".parquet": pl.scan_parquet,
             ".pqt": pl.scan_parquet,
         }[ext]
@@ -83,6 +84,7 @@ def _get_reader(filepath: str) -> typing.Callable:
             ".csv": pl.read_csv,
             ".csvgz": pl.read_csv,
             ".csv.gz": pl.read_csv,
+            ".csv.zst": pl.read_csv,
             ".fea": pl.read_ipc,
             ".feather": pl.read_ipc,
             ".json": pl.read_ndjson,
@@ -102,6 +104,9 @@ def _get_sink(filepath: str) -> typing.Callable:
             ".csv": lambda: pl.LazyFrame.sink_csv,
             ".csv.gz": lambda: _with_compression(
                 pl.LazyFrame.sink_csv, "gzip"
+            ),
+            ".csv.zst": lambda: _with_compression(
+                pl.LazyFrame.sink_csv, "zstd"
             ),
             ".fea": lambda: pl.LazyFrame.sink_ipc,
             ".feather": lambda: pl.LazyFrame.sink_ipc,
@@ -126,6 +131,9 @@ def _get_write(filepath: str) -> typing.Callable:
             ".csv": lambda: pl.DataFrame.write_csv,
             ".csv.gz": lambda: _with_compression(
                 pl.DataFrame.write_csv, "gzip"
+            ),
+            ".csv.zst": lambda: _with_compression(
+                pl.DataFrame.write_csv, "zstd"
             ),
             ".fea": lambda: pl.DataFrame.write_ipc,
             ".feather": lambda: pl.DataFrame.write_ipc,
