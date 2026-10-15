@@ -79,3 +79,7 @@ find assets/x.0.csv | python3 -m joinem out/su_small.csv --sample "pl.len().clip
 [ "$(( $(wc -l < out/su_small.csv) - 1 ))" -eq 1 ]
 find assets/x.0.csv | python3 -m joinem out/su_small2.csv --sample "pl.len().clip(upper_bound=1)" --seed 1
 cmp out/su_small.csv out/su_small2.csv
+
+# --shrink-dtypes should narrow numeric columns (Int64 a, Float64 b in source)
+find assets/x.*csv | python3 -m joinem out/shrink.pqt --shrink-dtypes
+python3 -c 'import polars as pl; s = pl.read_parquet("out/shrink.pqt").schema; assert s["a"] != pl.Int64 and s["b"] == pl.Float32, s'

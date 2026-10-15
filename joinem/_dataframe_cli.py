@@ -468,7 +468,13 @@ def _run_dataframe_cli(
         _eval_init(init_eval)
 
     if args.string_cache:
-        pl.enable_string_cache()
+        try:
+            pl.enable_string_cache()
+        except AttributeError:
+            logging.warning(
+                "--string-cache is unsupported in polars %s, ignoring.",
+                pl.__version__,
+            )
 
     lazy_frames = (
         [_get_scanner, _get_reader][args.stdin or args.eager_read](
@@ -527,8 +533,11 @@ def _run_dataframe_cli(
     result = output_dataframe_op(result).lazy()
 
     if args.shrink_dtypes:
-        # shrink_dtype is not yet fully supported by polars lazy API
-        result = result.select(pl.all().shrink_dtype()).collect().lazy()
+        result = (
+            result.collect()
+            .map_columns(pl.selectors.all(), pl.Series.shrink_dtype)
+            .lazy()
+        )
 
     [_get_sink, _get_write][args.eager_write](
         args.output_file
