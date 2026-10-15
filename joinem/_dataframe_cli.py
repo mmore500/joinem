@@ -554,11 +554,12 @@ def _run_dataframe_cli(
     if args.progress and not progress:
         logging.warning("--progress requires /dev/fd, which is unavailable.")
 
-    with (
+    context = (
         _progress_pipe(args.output_file)
         if progress
         else contextlib.nullcontext(args.output_file)
-    ) as output_path:
+    )
+    with context as output_path:
         [_get_sink, _get_write][args.eager_write](
             args.output_file
             if args.output_filetype is None
