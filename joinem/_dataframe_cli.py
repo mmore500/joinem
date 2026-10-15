@@ -43,16 +43,19 @@ def _get_ext(filepath: str) -> str:
     return ext or f".{filepath}"
 
 
-def _with_compression(
-    writer: typing.Callable, compression: typing.Optional[str]
+def _make_compressed_writer(
+    writer: typing.Callable, compression: str
 ) -> typing.Callable:
-    if compression is None:
-        return writer
     if "compression" not in inspect.signature(writer).parameters:
-        raise ValueError(
-            f"{compression} compression for {writer.__qualname__} "
-            f"is unsupported in polars {pl.__version__}",
-        )
+
+        def unsupported(*args, **kwargs) -> typing.NoReturn:
+            raise ValueError(
+                f"{compression} compression for {writer.__qualname__} "
+                f"is unsupported in polars {pl.__version__}",
+            )
+
+        return unsupported
+
     # check_extension=False allows writing to /dev/stdout and /dev/fd/*
     return functools.partial(
         writer, compression=compression, check_extension=False
@@ -114,53 +117,77 @@ def _get_reader(filepath: str) -> typing.Callable:
 def _get_sink(filepath: str) -> typing.Callable:
     ext = _get_ext(filepath)
     try:
-        sink, compression = {
-            ".csv": (pl.LazyFrame.sink_csv, None),
-            ".csv.gz": (pl.LazyFrame.sink_csv, "gzip"),
-            ".csv.zst": (pl.LazyFrame.sink_csv, "zstd"),
-            ".fea": (pl.LazyFrame.sink_ipc, None),
-            ".feather": (pl.LazyFrame.sink_ipc, None),
-            ".json": (pl.LazyFrame.sink_ndjson, None),
-            ".json.gz": (pl.LazyFrame.sink_ndjson, "gzip"),
-            ".json.zst": (pl.LazyFrame.sink_ndjson, "zstd"),
-            ".jsonl": (pl.LazyFrame.sink_ndjson, None),
-            ".jsonl.gz": (pl.LazyFrame.sink_ndjson, "gzip"),
-            ".jsonl.zst": (pl.LazyFrame.sink_ndjson, "zstd"),
-            ".ndjson": (pl.LazyFrame.sink_ndjson, None),
-            ".ndjson.gz": (pl.LazyFrame.sink_ndjson, "gzip"),
-            ".ndjson.zst": (pl.LazyFrame.sink_ndjson, "zstd"),
-            ".parquet": (pl.LazyFrame.sink_parquet, None),
-            ".pqt": (pl.LazyFrame.sink_parquet, None),
+        return {
+            ".csv": pl.LazyFrame.sink_csv,
+            ".csv.gz": _make_compressed_writer(pl.LazyFrame.sink_csv, "gzip"),
+            ".csv.zst": _make_compressed_writer(pl.LazyFrame.sink_csv, "zstd"),
+            ".fea": pl.LazyFrame.sink_ipc,
+            ".feather": pl.LazyFrame.sink_ipc,
+            ".json": pl.LazyFrame.sink_ndjson,
+            ".json.gz": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "gzip"
+            ),
+            ".json.zst": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "zstd"
+            ),
+            ".jsonl": pl.LazyFrame.sink_ndjson,
+            ".jsonl.gz": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "gzip"
+            ),
+            ".jsonl.zst": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "zstd"
+            ),
+            ".ndjson": pl.LazyFrame.sink_ndjson,
+            ".ndjson.gz": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "gzip"
+            ),
+            ".ndjson.zst": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "zstd"
+            ),
+            ".parquet": pl.LazyFrame.sink_parquet,
+            ".pqt": pl.LazyFrame.sink_parquet,
         }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
-    return _with_compression(sink, compression)
 
 
 def _get_write(filepath: str) -> typing.Callable:
     ext = _get_ext(filepath)
     try:
-        write, compression = {
-            ".csv": (pl.DataFrame.write_csv, None),
-            ".csv.gz": (pl.DataFrame.write_csv, "gzip"),
-            ".csv.zst": (pl.DataFrame.write_csv, "zstd"),
-            ".fea": (pl.DataFrame.write_ipc, None),
-            ".feather": (pl.DataFrame.write_ipc, None),
-            ".json": (pl.DataFrame.write_ndjson, None),
-            ".json.gz": (pl.DataFrame.write_ndjson, "gzip"),
-            ".json.zst": (pl.DataFrame.write_ndjson, "zstd"),
-            ".jsonl": (pl.DataFrame.write_ndjson, None),
-            ".jsonl.gz": (pl.DataFrame.write_ndjson, "gzip"),
-            ".jsonl.zst": (pl.DataFrame.write_ndjson, "zstd"),
-            ".ndjson": (pl.DataFrame.write_ndjson, None),
-            ".ndjson.gz": (pl.DataFrame.write_ndjson, "gzip"),
-            ".ndjson.zst": (pl.DataFrame.write_ndjson, "zstd"),
-            ".parquet": (pl.DataFrame.write_parquet, None),
-            ".pqt": (pl.DataFrame.write_parquet, None),
+        return {
+            ".csv": pl.DataFrame.write_csv,
+            ".csv.gz": _make_compressed_writer(pl.DataFrame.write_csv, "gzip"),
+            ".csv.zst": _make_compressed_writer(
+                pl.DataFrame.write_csv, "zstd"
+            ),
+            ".fea": pl.DataFrame.write_ipc,
+            ".feather": pl.DataFrame.write_ipc,
+            ".json": pl.DataFrame.write_ndjson,
+            ".json.gz": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "gzip"
+            ),
+            ".json.zst": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "zstd"
+            ),
+            ".jsonl": pl.DataFrame.write_ndjson,
+            ".jsonl.gz": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "gzip"
+            ),
+            ".jsonl.zst": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "zstd"
+            ),
+            ".ndjson": pl.DataFrame.write_ndjson,
+            ".ndjson.gz": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "gzip"
+            ),
+            ".ndjson.zst": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "zstd"
+            ),
+            ".parquet": pl.DataFrame.write_parquet,
+            ".pqt": pl.DataFrame.write_parquet,
         }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
-    return _with_compression(write, compression)
 
 
 @contextlib.contextmanager
