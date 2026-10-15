@@ -11,13 +11,13 @@ python3 -m joinem --help
 python3 -m joinem --version
 
 
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.csv --how diagonal_relaxed --progress --eager-read --sample 10
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.fea --how diagonal_relaxed --drop "a" --tail 10 --shuffle
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.fea --how diagonal_relaxed --select "a" --tail 10 --shuffle
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.feather --how diagonal_relaxed
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.json --how diagonal_relaxed --shrink-dtypes --gather-every 3
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.parquet --how diagonal_relaxed --shuffle
-find assets/*.csv assets/*.csv.gz assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.pqt --how diagonal_relaxed --write-kwarg 'compression="lz4"' --write-kwarg 'maintain_order=False' --tail 10 --gather-every 1
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.csv --how diagonal_relaxed --progress --eager-read --sample 10
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.fea --how diagonal_relaxed --drop "a" --tail 10 --shuffle
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.fea --how diagonal_relaxed --select "a" --tail 10 --shuffle
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.feather --how diagonal_relaxed
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.json --how diagonal_relaxed --shrink-dtypes --gather-every 3
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.parquet --how diagonal_relaxed --shuffle
+find assets/*.csv assets/*.csv.gz assets/*.csv.zst assets/*.pqt assets/*.parquet assets/*.fea assets/*.json* assets/*.feather | python3 -m joinem out/all.pqt --how diagonal_relaxed --write-kwarg 'compression="lz4"' --write-kwarg 'maintain_order=False' --tail 10 --gather-every 1
 
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.csv --progress --shrink-dtypes
 find assets/x*.csv assets/x*.pqt assets/x*.parquet | python3 -m joinem out/x.fea --head 1
@@ -61,6 +61,49 @@ cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --read-kwarg infer_
 cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv --shrink-dtypes > out/stdout
 
 cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv.gz --string-cache > out/stdout
+
+# compressed input and output
+find assets/x.*.json assets/x.*.json.gz assets/x.*.json.zst | python3 -m joinem out/xc.json
+find assets/x.*.csv.gz | python3 -m joinem out/xc.csv.gz
+find assets/x.*.csv.gz | python3 -m joinem out/xc2.csv.gz --eager-read --eager-write --progress
+find assets/x.*.csv assets/x.*.csv.gz assets/x.*.csv.zst | python3 -m joinem out/xc.csv.zst
+find assets/x.*.csv.zst | python3 -m joinem out/xc2.csv.zst --eager-read --eager-write --progress
+cat assets/x.0.csv.zst | python3 -m joinem "/dev/stdout" --stdin --input-filetype csv.zst --output-filetype csv.zst > out/stdout.csv.zst
+find assets/x.*.json | python3 -m joinem out/xc.json.gz
+find assets/x.*.json | python3 -m joinem out/xc.json.zst --eager-write
+find assets/x.*.json | python3 -m joinem out/xc2.json.zst --progress
+cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --input-filetype csv --output-filetype csv.gz > out/stdout.csv.gz
+cat assets/x.0.json.zst | python3 -m joinem "/dev/stdout" --stdin --input-filetype json.zst --output-filetype json.gz > out/stdout.json.gz
+python3 - <<'PY'
+import gzip
+import polars as pl
+
+with gzip.open("out/xc.csv.gz") as f:
+    assert pl.read_csv(f.read()).equals(pl.read_csv("out/xc2.csv.gz"))
+assert pl.read_csv("out/xc.csv.gz").height == 6
+assert pl.read_csv("out/stdout.csv.gz").equals(pl.read_csv("assets/x.0.csv"))
+for p in "out/xc.json.gz", "out/xc.json.zst", "out/xc2.json.zst":
+    assert pl.read_ndjson(p).equals(pl.read_ndjson("out/xc.json.gz")), p
+assert pl.read_ndjson("out/xc.json").height == 9
+assert pl.read_csv("out/xc.csv.zst").height == 18
+assert pl.read_csv("out/xc2.csv.zst").equals(pl.read_csv("out/xc.csv.gz"))
+assert pl.read_csv("out/stdout.csv.zst").equals(pl.read_csv("assets/x.0.csv"))
+assert pl.read_ndjson("out/stdout.json.gz").equals(
+    pl.read_ndjson("assets/x.0.json")
+)
+PY
+
+# jsonl and ndjson aliases
+for ext in jsonl jsonl.gz jsonl.zst ndjson ndjson.gz ndjson.zst; do
+  find assets/x.*.json | python3 -m joinem "out/xa.${ext}"
+  find assets/x.*.json | python3 -m joinem "out/xa2.${ext}" --eager-write
+  echo "out/xa.${ext}" | python3 -m joinem "out/xa_${ext}.json"
+  echo "out/xa2.${ext}" | python3 -m joinem "out/xa2_${ext}.json" --eager-read
+  cmp "out/xa_${ext}.json" out/xa_jsonl.json
+  cmp "out/xa2_${ext}.json" out/xa_jsonl.json
+done
+cat out/xa.ndjson.zst | python3 -m joinem /dev/stdout --stdin --input-filetype ndjson.zst --output-filetype jsonl.gz > out/stdout.jsonl.gz
+python3 -c 'import polars as pl; assert pl.read_ndjson("out/stdout.jsonl.gz").equals(pl.read_ndjson("out/xa_jsonl.json"))'
 
 ls assets/horizontal{1,2}.pqt | python3 -m joinem out/horizontal.csv --how horizontal
 

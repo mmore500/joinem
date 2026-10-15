@@ -22,6 +22,8 @@ if __name__ == "__main__":
         (".fea", pd.DataFrame.to_feather, {}),
         (".feather", pd.DataFrame.to_feather, {}),
         (".json", pd.DataFrame.to_json, {}),
+        (".json.gz", pd.DataFrame.to_json, {}),
+        (".json.zst", pd.DataFrame.to_json, {}),
         (".parquet", pd.DataFrame.to_parquet, {"index": False}),
         (".pqt", pd.DataFrame.to_parquet, {"index": False}),
     ]:

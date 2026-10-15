@@ -1,5 +1,7 @@
 import argparse
 import contextlib
+import functools
+import inspect
 import logging
 import os
 import subprocess
@@ -29,66 +31,157 @@ def dataframe_cli(
     )
 
 
+def _get_ext(filepath: str) -> str:
+    # e.g., "dir/x.0.csv.gz" -> ".csv.gz", "csv.gz" -> ".csv.gz", "csv" -> ".csv"
+    uncompressed = filepath.removesuffix(".gz").removesuffix(".zst")
+    compression = filepath[len(uncompressed) :]
+    root, ext = os.path.splitext(uncompressed)
+    return (ext or f".{root}") + compression
+
+
+def _make_compressed_writer(
+    writer: typing.Callable, compression: str
+) -> typing.Callable:
+    if "compression" not in inspect.signature(writer).parameters:
+
+        def unsupported(*args, **kwargs) -> typing.NoReturn:
+            raise ValueError(
+                f"{compression} compression for {writer.__qualname__} "
+                f"is unsupported in polars {pl.__version__}",
+            )
+
+        return unsupported
+
+    # check_extension=False allows writing to /dev/stdout and /dev/fd/*
+    return functools.partial(
+        writer, compression=compression, check_extension=False
+    )
+
+
 def _get_scanner(filepath: str) -> typing.Callable:
     try:
-        ext = os.path.splitext(filepath.replace("csv.gz", "csvgz"))[1]
+        ext = _get_ext(filepath)
         return {
             ".csv": pl.scan_csv,
-            ".csvgz": pl.read_csv,  # gz scan not yet supported by polars
-            ".csv.gz": pl.read_csv,  # gz scan not yet supported by polars
+            ".csvgz": pl.scan_csv,
+            ".csv.gz": pl.scan_csv,
+            ".csv.zst": pl.scan_csv,
             ".fea": pl.read_ipc,  # scan not yet supported by polars
             ".feather": pl.read_ipc,  # scan not yet supported by polars
-            ".json": pl.read_ndjson,  # scan not yet supported by polars
+            ".json": pl.scan_ndjson,
+            ".json.gz": pl.scan_ndjson,
+            ".json.zst": pl.scan_ndjson,
+            ".jsonl": pl.scan_ndjson,
+            ".jsonl.gz": pl.scan_ndjson,
+            ".jsonl.zst": pl.scan_ndjson,
+            ".ndjson": pl.scan_ndjson,
+            ".ndjson.gz": pl.scan_ndjson,
+            ".ndjson.zst": pl.scan_ndjson,
             ".parquet": pl.scan_parquet,
             ".pqt": pl.scan_parquet,
-        }[ext or f".{filepath}"]
+        }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
 def _get_reader(filepath: str) -> typing.Callable:
     try:
-        ext = os.path.splitext(filepath.replace("csv.gz", "csvgz"))[1]
+        ext = _get_ext(filepath)
         return {
             ".csv": pl.read_csv,
             ".csvgz": pl.read_csv,
             ".csv.gz": pl.read_csv,
+            ".csv.zst": pl.read_csv,
             ".fea": pl.read_ipc,
             ".feather": pl.read_ipc,
             ".json": pl.read_ndjson,
+            ".json.gz": pl.read_ndjson,
+            ".json.zst": pl.read_ndjson,
+            ".jsonl": pl.read_ndjson,
+            ".jsonl.gz": pl.read_ndjson,
+            ".jsonl.zst": pl.read_ndjson,
+            ".ndjson": pl.read_ndjson,
+            ".ndjson.gz": pl.read_ndjson,
+            ".ndjson.zst": pl.read_ndjson,
             ".parquet": pl.read_parquet,
             ".pqt": pl.read_parquet,
-        }[ext or f".{filepath}"]
+        }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
 def _get_sink(filepath: str) -> typing.Callable:
+    ext = _get_ext(filepath)
     try:
-        ext = os.path.splitext(filepath)[1]
         return {
             ".csv": pl.LazyFrame.sink_csv,
+            ".csv.gz": _make_compressed_writer(pl.LazyFrame.sink_csv, "gzip"),
+            ".csv.zst": _make_compressed_writer(pl.LazyFrame.sink_csv, "zstd"),
             ".fea": pl.LazyFrame.sink_ipc,
             ".feather": pl.LazyFrame.sink_ipc,
             ".json": pl.LazyFrame.sink_ndjson,
+            ".json.gz": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "gzip"
+            ),
+            ".json.zst": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "zstd"
+            ),
+            ".jsonl": pl.LazyFrame.sink_ndjson,
+            ".jsonl.gz": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "gzip"
+            ),
+            ".jsonl.zst": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "zstd"
+            ),
+            ".ndjson": pl.LazyFrame.sink_ndjson,
+            ".ndjson.gz": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "gzip"
+            ),
+            ".ndjson.zst": _make_compressed_writer(
+                pl.LazyFrame.sink_ndjson, "zstd"
+            ),
             ".parquet": pl.LazyFrame.sink_parquet,
             ".pqt": pl.LazyFrame.sink_parquet,
-        }[ext or f".{filepath}"]
+        }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 
 
 def _get_write(filepath: str) -> typing.Callable:
+    ext = _get_ext(filepath)
     try:
-        ext = os.path.splitext(filepath)[1]
         return {
             ".csv": pl.DataFrame.write_csv,
+            ".csv.gz": _make_compressed_writer(pl.DataFrame.write_csv, "gzip"),
+            ".csv.zst": _make_compressed_writer(
+                pl.DataFrame.write_csv, "zstd"
+            ),
             ".fea": pl.DataFrame.write_ipc,
             ".feather": pl.DataFrame.write_ipc,
             ".json": pl.DataFrame.write_ndjson,
+            ".json.gz": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "gzip"
+            ),
+            ".json.zst": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "zstd"
+            ),
+            ".jsonl": pl.DataFrame.write_ndjson,
+            ".jsonl.gz": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "gzip"
+            ),
+            ".jsonl.zst": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "zstd"
+            ),
+            ".ndjson": pl.DataFrame.write_ndjson,
+            ".ndjson.gz": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "gzip"
+            ),
+            ".ndjson.zst": _make_compressed_writer(
+                pl.DataFrame.write_ndjson, "zstd"
+            ),
             ".parquet": pl.DataFrame.write_parquet,
             ".pqt": pl.DataFrame.write_parquet,
-        }[ext or f".{filepath}"]
+        }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
 

@@ -21,10 +21,14 @@
 ## Features
 
 - Lazily streams I/O to expeditiously handle numerous large files.
-- Supports CSV and parquet input files.
-    - Due to current polars limitations, JSON and feather files are not supported.
+- Supports CSV, JSON, parquet, and feather input files.
+    - JSON input must be newline-delimited (`.json`, `.jsonl`, or `.ndjson`).
+    - Compressed input is supported: `.csv.gz`, `.csv.zst`, `.json.gz`, `.json.zst`, `.jsonl.gz`, `.jsonl.zst`, `.ndjson.gz`, and `.ndjson.zst`.
+    - Feather files are read eagerly rather than streamed.
     - Input formats may be mixed.
-- Supports output to CSV, JSON, parquet, and feather file types.
+- Supports CSV, JSON, parquet, and feather output files.
+    - JSON output is newline-delimited (`.json`, `.jsonl`, or `.ndjson`).
+    - Compressed output is supported: `.csv.gz`, `.csv.zst`, `.json.gz`, `.json.zst`, `.jsonl.gz`, `.jsonl.zst`, `.ndjson.gz`, and `.ndjson.zst` (requires a recent polars).
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Logs bytes written and write throughput with `--progress`.
 - Add programatically-generated columns to output.
@@ -78,6 +82,11 @@ Apply regex on source datafile paths to create new column in output.
 ```
 ls -1 path/to/*.csv | python3 -m joinem out.csv \
   --with-column 'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv", r"${1}").alias("filename stem")'
+```
+
+Write gzip-compressed CSV output; compression is inferred from the output file extension.
+```
+ls -1 *.csv.gz | python3 -m joinem out.csv.gz
 ```
 
 Read data from stdin and write data to stdout.
