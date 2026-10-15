@@ -31,16 +31,11 @@ def dataframe_cli(
     )
 
 
-_compression_exts = (".gz", ".zst")
-
-
 def _get_ext(filepath: str) -> str:
-    # e.g., "foo.csv.gz" -> ".csv.gz", "csv.gz" -> ".csv.gz", "csv" -> ".csv"
-    root, ext = os.path.splitext(filepath)
-    if ext in _compression_exts:
-        root, inner = os.path.splitext(root)
-        ext = (inner or f".{root}") + ext
-    return ext or f".{filepath}"
+    # e.g., "dir/x.0.csv.gz" -> ".csv.gz", "csv.gz" -> ".csv.gz", "csv" -> ".csv"
+    parts = os.path.basename(filepath).split(".")
+    is_compressed = parts[-1] in ("gz", "zst")
+    return "." + ".".join(parts[-2:] if is_compressed else parts[-1:])
 
 
 def _make_compressed_writer(
