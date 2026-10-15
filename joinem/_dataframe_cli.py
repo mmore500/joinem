@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import logging
 import os
 import subprocess
@@ -90,6 +91,16 @@ def _get_write(filepath: str) -> typing.Callable:
         }[ext or f".{filepath}"]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
+
+
+@contextlib.contextmanager
+def _progress_pipe(filepath: str) -> typing.Iterator[str]:
+    # pipe output through tqdm, which logs throughput and writes to file
+    cmd = [sys.executable, "-m", "tqdm", "--bytes", "--mininterval", "5"]
+    with open(filepath, "wb") as f, subprocess.Popen(
+        cmd, stdin=subprocess.PIPE, stdout=f
+    ) as proc:
+        yield f"/dev/fd/{proc.stdin.fileno()}"
 
 
 def _eval_init(init_eval: str) -> None:
@@ -539,23 +550,21 @@ def _run_dataframe_cli(
             .lazy()
         )
 
-    write = [_get_sink, _get_write][args.eager_write](
-        args.output_file
-        if args.output_filetype is None
-        else args.output_filetype
-    )
-    data = result.collect() if args.eager_write else result
-    write_kwargs = _eval_kwargs(args.write_kwargs)
-
-    if args.progress and not os.path.isdir("/dev/fd"):
+    progress = args.progress and os.path.isdir("/dev/fd")
+    if args.progress and not progress:
         logging.warning("--progress requires /dev/fd, which is unavailable.")
-    elif args.progress:
-        # pipe output through tqdm, which logs throughput and writes to file
-        cmd = [sys.executable, "-m", "tqdm", "--bytes", "--mininterval", "5"]
-        with open(args.output_file, "wb") as f, subprocess.Popen(
-            cmd, stdin=subprocess.PIPE, stdout=f
-        ) as proc:
-            write(data, f"/dev/fd/{proc.stdin.fileno()}", **write_kwargs)
-        return
 
-    write(data, args.output_file, **write_kwargs)
+    with (
+        _progress_pipe(args.output_file)
+        if progress
+        else contextlib.nullcontext(args.output_file)
+    ) as output_path:
+        [_get_sink, _get_write][args.eager_write](
+            args.output_file
+            if args.output_filetype is None
+            else args.output_filetype
+        )(
+            result.collect() if args.eager_write else result,
+            output_path,
+            **_eval_kwargs(args.write_kwargs),
+        )
