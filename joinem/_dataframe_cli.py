@@ -233,12 +233,24 @@ def _eval_filter(with_column: str) -> pl.Expr:
         )
 
 
-def _eval_sample(sample: str) -> typing.Union[int, pl.Expr]:
+def _eval_sample(sample: str) -> typing.Union[int, float, pl.Expr]:
     try:
         return eval(sample)
     except Exception as e:
         logging.error(
             "Failed to parse sample expression `%s` error: %s", sample, e
+        )
+        sys.exit(1)
+
+
+def _eval_stratify(stratify: str) -> pl.Expr:
+    try:
+        return eval(stratify)
+    except Exception as e:
+        logging.error(
+            "Failed to parse sample-stratify expression `%s` error: %s",
+            stratify,
+            e,
         )
         sys.exit(1)
 
@@ -409,12 +421,29 @@ def _add_parser_core(
         dest="sample",
         help=(
             "Number of rows to include in output, sampled uniformly. "
-            "Accepts an integer or polars expression, "
-            "with access to polars as `pl`. "
+            "Accepts an integer, a float (fraction of rows), "
+            "or polars expression, with access to polars as `pl`. "
             "Sampling more rows than available raises an error; to sample "
             "up to a maximum, use an expression such as "
             r"""'pl.len().clip(upper_bound=100)'. """
             "Pass --seed for deterministic behavior."
+        ),
+        type=str,
+    )
+    _try_add_argument(
+        parser,
+        "--sample-stratify",
+        action="append",
+        default=[],
+        dest="sample_stratify",
+        help=(
+            "Expression to stratify --sample by, so that the sample size "
+            "applies to each distinct value (or combination of values, if "
+            "repeated). Has access to polars as `pl`. Example: "
+            r"""'pl.col("thing")'. """
+            "To sample up to a maximum per group, combine with a --sample "
+            "expression such as "
+            r"""'pl.len().clip(upper_bound=100)'."""
         ),
         type=str,
     )
@@ -624,11 +653,25 @@ def _run_dataframe_cli(
     if args.gather_every is not None:
         result = result.gather_every(args.gather_every)
     if args.sample is not None:
-        result = result.select(
-            pl.struct(pl.all())
-            .sample(n=_eval_sample(args.sample), seed=args.seed)
-            .alias("__joinem_sampled__")
-        ).unnest("__joinem_sampled__")
+        sample = _eval_sample(args.sample)
+        sampled = pl.struct(pl.all()).sample(
+            **{"fraction" if isinstance(sample, float) else "n": sample},
+            seed=args.seed,
+        )
+        if args.sample_stratify:
+            # shuffle first so a shared seed picks different rows per group
+            result = (
+                result.collect()
+                .sample(fraction=1, shuffle=True, seed=args.seed)
+                .lazy()
+            )
+            sampled = sampled.over(
+                *map(_eval_stratify, args.sample_stratify),
+                mapping_strategy="explode",
+            )
+        result = result.select(sampled.alias("__joinem_sampled__")).unnest(
+            "__joinem_sampled__"
+        )
     if args.shuffle:
         result = result.collect().sample(shuffle=True, seed=args.seed).lazy()
     result = output_dataframe_op(result).lazy()

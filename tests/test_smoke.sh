@@ -123,6 +123,22 @@ find assets/x.0.csv | python3 -m joinem out/su_small.csv --sample "pl.len().clip
 find assets/x.0.csv | python3 -m joinem out/su_small2.csv --sample "pl.len().clip(upper_bound=1)" --seed 1
 cmp out/su_small.csv out/su_small2.csv
 
+# --sample-stratify samples n (or a fraction) per distinct combination
+python3 -c 'import polars as pl; pl.DataFrame({"g": [0] * 6 + [1] * 4, "h": [0, 1] * 5, "v": range(10)}).write_csv("out/strat_in.csv")'
+find out/strat_in.csv | python3 -m joinem out/strat1.csv --sample 2 --sample-stratify 'pl.col("g")' --seed 1
+python3 -c 'import polars as pl; d = pl.read_csv("out/strat1.csv"); assert d["g"].value_counts()["count"].to_list() == [2, 2], d'
+find out/strat_in.csv | python3 -m joinem out/strat2.csv --sample 1 --sample-stratify 'pl.col("g")' --sample-stratify 'pl.col("h")' --seed 1
+python3 -c 'import polars as pl; d = pl.read_csv("out/strat2.csv"); assert d.height == 4 and d.select(["g", "h"]).n_unique() == 4, d'
+find out/strat_in.csv | python3 -m joinem out/strat3.csv --sample 0.5 --sample-stratify 'pl.col("g")' --seed 1
+python3 -c 'import polars as pl; d = pl.read_csv("out/strat3.csv"); assert d.filter(pl.col("g") == 0).height == 3 and d.filter(pl.col("g") == 1).height == 2, d'
+find out/strat_in.csv | python3 -m joinem out/strat5.csv --sample "pl.len().clip(upper_bound=5)" --sample-stratify 'pl.col("g")' --seed 1
+python3 -c 'import polars as pl; d = pl.read_csv("out/strat5.csv"); assert d.filter(pl.col("g") == 0).height == 5 and d.filter(pl.col("g") == 1).height == 4, d'
+python3 -c 'import polars as pl; pl.DataFrame({"g": [0, 1] * 100, "v": range(200)}).write_csv("out/strat_big.csv")'
+find out/strat_big.csv | python3 -m joinem out/strat4.csv --sample 10 --sample-stratify 'pl.col("g")' --seed 1
+python3 -c 'import polars as pl; d = pl.read_csv("out/strat4.csv"); s = [set(d.filter(pl.col("g") == g)["v"]) for g in (0, 1)]; assert len(s[0]) == len(s[1]) == 10 and s[0] != s[1], d'
+find out/strat_in.csv | python3 -m joinem out/frac.csv --sample 0.5 --seed 1
+[ "$(( $(wc -l < out/frac.csv) - 1 ))" -eq 5 ]
+
 # --shrink-dtypes should narrow numeric columns (Int64 a, Float64 b in source)
 find assets/x.*csv | python3 -m joinem out/shrink.pqt --shrink-dtypes
 python3 -c 'import polars as pl; s = pl.read_parquet("out/shrink.pqt").schema; assert s["a"] != pl.Int64 and s["b"] == pl.Float32, s'
