@@ -656,6 +656,12 @@ def _run_dataframe_cli(
             seed=args.seed,
         )
         if args.sample_stratify:
+            # shuffle first so a shared seed picks different rows per group
+            result = (
+                result.collect()
+                .sample(fraction=1, shuffle=True, seed=args.seed)
+                .lazy()
+            )
             sampled = sampled.over(
                 *map(_eval_stratify, args.sample_stratify),
                 mapping_strategy="explode",
