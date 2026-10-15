@@ -1,12 +1,13 @@
 import argparse
+import contextlib
 import logging
 import os
+import subprocess
 import sys
 import typing
 import warnings
 
 import polars as pl
-from tqdm import tqdm
 
 
 def dataframe_cli(
@@ -90,6 +91,16 @@ def _get_write(filepath: str) -> typing.Callable:
         }[ext or f".{filepath}"]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
+
+
+@contextlib.contextmanager
+def _progress_pipe(filepath: str) -> typing.Iterator[str]:
+    # pipe output through tqdm, which logs throughput and writes to file
+    cmd = [sys.executable, "-m", "tqdm", "--bytes", "--mininterval", "5"]
+    with open(filepath, "wb") as f, subprocess.Popen(
+        cmd, stdin=subprocess.PIPE, stdout=f
+    ) as proc:
+        yield f"/dev/fd/{proc.stdin.fileno()}"
 
 
 def _eval_init(init_eval: str) -> None:
@@ -208,7 +219,7 @@ def _add_parser_core(
         parser,
         "--progress",
         action="store_true",
-        help="Show progress bar.",
+        help="Log bytes written and write throughput.",
     )
     _try_add_argument(
         parser,
@@ -500,9 +511,6 @@ def _run_dataframe_cli(
         ][args.stdin]
     )
     lazy_frames = map(lambda x: x.lazy(), map(input_dataframe_op, lazy_frames))
-    if args.progress:
-        lazy_frames = tqdm(lazy_frames)
-
     try:
         result = pl.concat(lazy_frames, how=args.how, rechunk=False)
     except ValueError as e:
@@ -539,12 +547,22 @@ def _run_dataframe_cli(
             .lazy()
         )
 
-    [_get_sink, _get_write][args.eager_write](
-        args.output_file
-        if args.output_filetype is None
-        else args.output_filetype
-    )(
-        result.collect() if args.eager_write else result,
-        args.output_file,
-        **_eval_kwargs(args.write_kwargs),
+    progress = args.progress and os.path.isdir("/dev/fd")
+    if args.progress and not progress:
+        logging.warning("--progress requires /dev/fd, which is unavailable.")
+
+    context = (
+        _progress_pipe(args.output_file)
+        if progress
+        else contextlib.nullcontext(args.output_file)
     )
+    with context as output_path:
+        [_get_sink, _get_write][args.eager_write](
+            args.output_file
+            if args.output_filetype is None
+            else args.output_filetype
+        )(
+            result.collect() if args.eager_write else result,
+            output_path,
+            **_eval_kwargs(args.write_kwargs),
+        )
