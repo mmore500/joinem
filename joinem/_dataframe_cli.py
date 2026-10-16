@@ -243,18 +243,6 @@ def _eval_sample(sample: str) -> typing.Union[int, float, pl.Expr]:
         sys.exit(1)
 
 
-def _eval_stratify(stratify: str) -> pl.Expr:
-    try:
-        return eval(stratify)
-    except Exception as e:
-        logging.error(
-            "Failed to parse sample-stratify expression `%s` error: %s",
-            stratify,
-            e,
-        )
-        sys.exit(1)
-
-
 def _eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
     to_eval = f"dict({','.join(kwargs_list)})"
     try:
@@ -437,10 +425,10 @@ def _add_parser_core(
         default=[],
         dest="sample_stratify",
         help=(
-            "Expression to stratify --sample by, so that the sample size "
+            "Column name to stratify --sample by, so that the sample size "
             "applies to each distinct value (or combination of values, if "
-            "repeated). Has access to polars as `pl`. Example: "
-            r"""'pl.col("thing")'. """
+            "repeated). To stratify by a derived value, add it as a column "
+            "with --with-column and pass its alias. "
             "To sample up to a maximum per group, combine with a --sample "
             "expression such as "
             r"""'pl.len().clip(upper_bound=100)'."""
@@ -666,7 +654,7 @@ def _run_dataframe_cli(
                 .lazy()
             )
             sampled = sampled.over(
-                *map(_eval_stratify, args.sample_stratify),
+                *args.sample_stratify,
                 mapping_strategy="explode",
             )
         result = result.select(sampled.alias("__joinem_sampled__")).unnest(

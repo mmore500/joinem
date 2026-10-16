@@ -161,13 +161,13 @@ options:
                         such as 'pl.len().clip(upper_bound=100)'. Pass
                         --seed for deterministic behavior.
   --sample-stratify SAMPLE_STRATIFY
-                        Expression to stratify --sample by, so that the
+                        Column name to stratify --sample by, so that the
                         sample size applies to each distinct value (or
-                        combination of values, if repeated). Has access to
-                        polars as `pl`. Example: 'pl.col("thing")'. To
-                        sample up to a maximum per group, combine with a
-                        --sample expression such as
-                        'pl.len().clip(upper_bound=100)'.
+                        combination of values, if repeated). To stratify by
+                        a derived value, add it as a column with --with-
+                        column and pass its alias. To sample up to a maximum
+                        per group, combine with a --sample expression such
+                        as 'pl.len().clip(upper_bound=100)'.
   --shuffle             Should output be shuffled? Pass --seed for
                         deterministic behavior.
   --seed SEED           Integer seed for deterministic behavior.
