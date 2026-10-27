@@ -65,14 +65,13 @@ def _write_show(
     **kwargs,
 ) -> None:
     # write DataFrame.show output, without row/col truncation
-    # kwargs override show settings, e.g., tbl_formatting="ASCII_FULL"
-    kwargs = {"limit": None, "tbl_cols": -1, **kwargs}
+    # kwargs are passed to show, e.g., tbl_formatting="ASCII_FULL"
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         try:
-            frame.show(**kwargs)
+            frame.show(limit=None, tbl_cols=-1, **kwargs)
         except ValueError:  # LazyFrame.show does not support limit=None
-            frame.lazy().collect().show(**kwargs)
+            frame.lazy().collect().show(limit=None, tbl_cols=-1, **kwargs)
     with open(path, "w") as f:
         print(buf.getvalue(), end="", file=f)
 
