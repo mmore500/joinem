@@ -58,6 +58,18 @@ def _make_compressed_writer(
     )
 
 
+def _write_show(
+    frame: typing.Union[pl.DataFrame, pl.LazyFrame],
+    path: str,
+    **show_kwargs,
+) -> None:
+    with open(path, "w") as f, contextlib.redirect_stdout(f):
+        try:
+            frame.show(**show_kwargs)
+        except ValueError:
+            frame.lazy().collect().show(**show_kwargs)
+
+
 def _get_scanner(filepath: str) -> typing.Callable:
     try:
         ext = _get_ext(filepath)
@@ -142,6 +154,7 @@ def _get_sink(filepath: str) -> typing.Callable:
             ),
             ".parquet": pl.LazyFrame.sink_parquet,
             ".pqt": pl.LazyFrame.sink_parquet,
+            ".show": _write_show,
         }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
@@ -181,6 +194,7 @@ def _get_write(filepath: str) -> typing.Callable:
             ),
             ".parquet": pl.DataFrame.write_parquet,
             ".pqt": pl.DataFrame.write_parquet,
+            ".show": _write_show,
         }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
@@ -572,7 +586,11 @@ def _add_parser_core(
         parser,
         "--output-filetype",
         action="store",
-        help="Filetype of output. Otherwise, inferred. Example: csv, parquet",
+        help=(
+            "Filetype of output. Otherwise, inferred. "
+            "Example: csv, parquet. "
+            "Use show to pretty print via DataFrame.show."
+        ),
         type=str,
     )
     _try_add_argument(

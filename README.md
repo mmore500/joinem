@@ -29,6 +29,7 @@
 - Supports CSV, JSON, parquet, and feather output files.
     - JSON output is newline-delimited (`.json`, `.jsonl`, or `.ndjson`).
     - Compressed output is supported: `.csv.gz`, `.csv.zst`, `.json.gz`, `.json.zst`, `.jsonl.gz`, `.jsonl.zst`, `.ndjson.gz`, and `.ndjson.zst` (requires a recent polars).
+- Supports pretty-printed text output (`.show`), via polars `DataFrame.show`.
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Logs bytes written and write throughput with `--progress`.
 - Add programatically-generated columns to output.
@@ -103,6 +104,13 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
   | pv > concat.pqt
 ```
 
+Write pretty print to stdout.
+Use `--write-kwarg` to pass `DataFrame.show` settings, e.g., to print all rows and columns.
+```
+ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
+  --write-kwarg 'limit=None' --write-kwarg 'tbl_cols=-1'
+```
+
 Use `--init-eval` to configure Polars before processing begins, e.g., to set `pl.Config.set_engine_affinity` to prefer the streaming engine.
 ```
 ls -1 *.csv | python3 -m joinem out.pqt \
@@ -115,6 +123,19 @@ Expressions should evaluate to a callable and have access to polars as `pl`.
 ls -1 *.csv | python3 -m joinem out.pqt \
   --ipipe 'lambda df: df.with_columns(pl.len().alias("n"))' \
   --opipe 'pl.LazyFrame.unique'
+```
+
+Combine `--opipe` with `show` to pretty print summary statistics to stdout.
+```
+ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
+  --opipe 'pl.LazyFrame.describe' \
+  --write-kwarg 'limit=None' --write-kwarg 'tbl_cols=-1'
+```
+
+Similarly, pretty print a column-wise preview from `glimpse`.
+```
+ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
+  --opipe 'lambda df: df.collect().glimpse(return_type="frame")'
 ```
 
 ## API
@@ -220,7 +241,8 @@ options:
                         csv, parquet, json, feather
   --output-filetype OUTPUT_FILETYPE
                         Filetype of output. Otherwise, inferred. Example:
-                        csv, parquet
+                        csv, parquet. Use show to pretty print via
+                        DataFrame.show.
   --read-kwarg READ_KWARGS
                         Additional keyword arguments to pass to pl.read_* or
                         pl.scan_* call(s). Provide as 'key=value'. Specify

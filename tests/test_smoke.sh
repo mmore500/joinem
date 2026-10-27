@@ -56,6 +56,15 @@ find assets/x.*pqt | python3 -m joinem out/x2.csv --with-column 'pl.lit(2).alias
 
 find assets/z.*csv | python3 -m joinem out/z0.pqt --with-column 'pl.col("q").cast(pl.Categorical)' --string-cache --shrink-dtypes --write-kwarg 'compression_level=10' --write-kwarg 'compression="zstd"'
 
+find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
+find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --eager-write --progress
+find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --write-kwarg 'limit=None' --write-kwarg 'tbl_cols=-1'
+find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --eager-write --write-kwarg 'limit=None'
+
+# README show example
+find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
+  --write-kwarg 'limit=None' --write-kwarg 'tbl_cols=-1' > out/show_stdout
+
 cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --read-kwarg infer_schema_length=None --output-filetype csv --input-filetype csv > out/stdout
 
 cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv --shrink-dtypes > out/stdout
@@ -153,3 +162,14 @@ find assets/x.*csv | python3 -m joinem out/pipe_readme.pqt \
 # --shrink-dtypes should narrow numeric columns (Int64 a, Float64 b in source)
 find assets/x.*csv | python3 -m joinem out/shrink.pqt --shrink-dtypes
 python3 -c 'import polars as pl; s = pl.read_parquet("out/shrink.pqt").schema; assert s["a"] != pl.Int64 and s["b"] == pl.Float32, s'
+
+# README --opipe + show example
+find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
+  --opipe 'pl.LazyFrame.describe' \
+  --write-kwarg 'limit=None' --write-kwarg 'tbl_cols=-1' > out/describe_stdout
+
+# README --opipe + show glimpse example
+find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
+  --opipe 'lambda df: df.collect().glimpse(return_type="frame")' \
+  --write-kwarg 'limit=None' --write-kwarg 'fmt_table_cell_list_len=-1' \
+  --write-kwarg 'fmt_str_lengths=1000' > out/glimpse_stdout
