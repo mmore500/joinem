@@ -110,11 +110,11 @@ ls -1 *.csv | python3 -m joinem out.pqt \
 ```
 
 Use `--ipipe` and `--opipe` to transform each input frame (before concatenation) or the output frame via `df.pipe(...)`.
-Expressions should evaluate to a callable and have access to polars as `pl` and the default dataframe op as `op`.
+Expressions should evaluate to a callable and have access to polars as `pl`.
 ```
 ls -1 *.csv | python3 -m joinem out.pqt \
-  --ipipe 'lambda df: op(df).with_columns(pl.len().alias("n"))' \
-  --opipe 'lambda df: op(df).unique()'
+  --ipipe 'lambda df: df.with_columns(pl.len().alias("n"))' \
+  --opipe 'pl.LazyFrame.unique'
 ```
 
 ## API
