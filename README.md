@@ -30,7 +30,7 @@
     - JSON output is newline-delimited (`.json`, `.jsonl`, or `.ndjson`).
     - Compressed output is supported: `.csv.gz`, `.csv.zst`, `.json.gz`, `.json.zst`, `.jsonl.gz`, `.jsonl.zst`, `.ndjson.gz`, and `.ndjson.zst` (requires a recent polars).
 - Supports pretty-printed text output, with no row or column truncation.
-    - `.display` or `.txt` prints the full table, like polars `DataFrame.show`.
+    - `.show` prints the full table, like polars `DataFrame.show`.
     - `.summary` prints summary statistics, from polars `describe`.
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Logs bytes written and write throughput with `--progress`.
@@ -109,7 +109,7 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
 Pretty print the full table, or summary statistics, to stdout.
 Use `--write-kwarg` to pass `pl.Config` settings, such as table formatting.
 ```
-ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype display
+ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show
 ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype summary \
   --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
 ```
