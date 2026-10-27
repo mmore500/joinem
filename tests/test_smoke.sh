@@ -160,3 +160,8 @@ python3 -c 'import polars as pl; s = pl.read_parquet("out/shrink.pqt").schema; a
 # README --opipe + show example
 find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
   --opipe 'pl.LazyFrame.describe' > out/describe_stdout
+
+# README --opipe + show glimpse example
+find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
+  --opipe 'lambda df: df.collect().glimpse(return_type="frame")' \
+  --write-kwarg 'fmt_table_cell_list_len=-1' --write-kwarg 'fmt_str_lengths=1000' > out/glimpse_stdout
