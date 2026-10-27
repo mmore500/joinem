@@ -143,7 +143,7 @@ find out/strat_in.csv | python3 -m joinem out/frac.csv --sample 0.5 --seed 1
 
 find assets/x.*csv | python3 -m joinem out/ipipe.csv --ipipe 'lambda df: op(df).with_columns(pl.lit(1).alias("one"))'
 
-find assets/x.*csv | python3 -m joinem out/opipe.csv --opipe 'lambda df: op(df).head(3)'
+find assets/x.*csv | python3 -m joinem out/opipe.csv --opipe 'pl.LazyFrame.describe'
 
 # --shrink-dtypes should narrow numeric columns (Int64 a, Float64 b in source)
 find assets/x.*csv | python3 -m joinem out/shrink.pqt --shrink-dtypes
