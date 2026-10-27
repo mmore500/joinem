@@ -62,16 +62,14 @@ def _make_compressed_writer(
 def _write_show(
     frame: typing.Union[pl.DataFrame, pl.LazyFrame],
     path: str,
-    **kwargs,
+    show_kwargs: typing.Dict,
 ) -> None:
-    # write DataFrame.show output, without row/col truncation
-    # kwargs are passed to show, e.g., tbl_formatting="ASCII_FULL"
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         try:
-            frame.show(limit=None, tbl_cols=-1, **kwargs)
-        except ValueError:  # LazyFrame.show does not support limit=None
-            frame.lazy().collect().show(limit=None, tbl_cols=-1, **kwargs)
+            frame.show(limit=None, tbl_cols=-1, **show_kwargs)
+        except ValueError:
+            frame.lazy().collect().show(limit=None, tbl_cols=-1, **show_kwargs)
     with open(path, "w") as f:
         print(buf.getvalue(), end="", file=f)
 
@@ -749,12 +747,14 @@ def _run_dataframe_cli(
         else contextlib.nullcontext(args.output_file)
     )
     with context as output_path:
-        [_get_sink, _get_write][args.eager_write](
+        writer = [_get_sink, _get_write][args.eager_write](
             args.output_file
             if args.output_filetype is None
             else args.output_filetype
-        )(
-            result.collect() if args.eager_write else result,
-            output_path,
-            **_eval_kwargs(args.write_kwargs),
         )
+        frame = result.collect() if args.eager_write else result
+        write_kwargs = _eval_kwargs(args.write_kwargs)
+        if writer is _write_show:
+            writer(frame, output_path, write_kwargs)
+        else:
+            writer(frame, output_path, **write_kwargs)
