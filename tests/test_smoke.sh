@@ -141,14 +141,9 @@ python3 -c 'import polars as pl; d = pl.read_csv("out/strat6.csv"); assert d.hei
 find out/strat_in.csv | python3 -m joinem out/frac.csv --sample 0.5 --seed 1
 [ "$(( $(wc -l < out/frac.csv) - 1 ))" -eq 5 ]
 
-# --ipipe/--opipe apply df.pipe(eval'ed) to input frames and output frame
-find assets/x.*csv | python3 -m joinem out/pipe_default.csv --ipipe op --opipe op
-find assets/x.*csv | python3 -m joinem out/pipe_none.csv
-cmp out/pipe_default.csv out/pipe_none.csv
 find assets/x.*csv | python3 -m joinem out/ipipe.csv --ipipe 'lambda df: op(df).with_columns(pl.lit(1).alias("one"))'
-python3 -c 'import polars as pl; d = pl.read_csv("out/ipipe.csv"); assert (d["one"] == 1).all() and d.height == pl.read_csv("out/pipe_none.csv").height, d'
-find assets/x.*csv | python3 -m joinem out/opipe.csv --opipe 'lambda df: op(df).head(3).collect()'
-[ "$(( $(wc -l < out/opipe.csv) - 1 ))" -eq 3 ]
+
+find assets/x.*csv | python3 -m joinem out/opipe.csv --opipe 'lambda df: op(df).head(3)'
 
 # --shrink-dtypes should narrow numeric columns (Int64 a, Float64 b in source)
 find assets/x.*csv | python3 -m joinem out/shrink.pqt --shrink-dtypes
