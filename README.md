@@ -135,7 +135,7 @@ ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
 Similarly, pretty print a column-wise preview from `glimpse`.
 ```
 ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
-  --opipe 'lambda df: df.collect().glimpse(return_type="frame")' \
+  --opipe 'lambda df: df.collect().glimpse(return_type="frame")'
 ```
 
 ## API
