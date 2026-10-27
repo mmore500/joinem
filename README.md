@@ -105,7 +105,7 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
 ```
 
 Pretty print the full table to stdout.
-Use `--write-kwarg` to pass `pl.Config` settings, such as table formatting.
+Use `--write-kwarg` to pass `DataFrame.show` settings, such as table formatting.
 ```
 ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
   --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'

@@ -2,6 +2,7 @@ import argparse
 import contextlib
 import functools
 import inspect
+import io
 import logging
 import os
 import subprocess
@@ -63,15 +64,16 @@ def _write_show(
     path: str,
     **kwargs,
 ) -> None:
-    # write polars pretty-printed table, without row/col truncation
-    # kwargs override pl.Config settings, e.g., tbl_formatting="ASCII_FULL"
-    if isinstance(frame, pl.LazyFrame):
-        frame = frame.collect()
-    config = {"tbl_rows": -1, "tbl_cols": -1, **kwargs}
-    with pl.Config(**config):
-        text = str(frame)
+    # write DataFrame.show output, without row/col truncation
+    # kwargs override show settings, e.g., tbl_formatting="ASCII_FULL"
+    # collect, because LazyFrame.show does not support limit=None
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        frame.lazy().collect().show(
+            **{"limit": None, "tbl_cols": -1, **kwargs}
+        )
     with open(path, "w") as f:
-        f.write(text + "\n")
+        print(buf.getvalue(), end="", file=f)
 
 
 def _get_scanner(filepath: str) -> typing.Callable:
