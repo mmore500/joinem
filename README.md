@@ -111,22 +111,6 @@ ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
   --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
 ```
 
-Build a custom CLI with `joinem.dataframe_cli` to transform the result before writing, e.g., to pretty print summary statistics to stdout.
-```python
-# describem.py
-import joinem
-
-joinem.dataframe_cli(
-    description="Print summary statistics of concatenated data.",
-    module="describem",
-    version="0.0.0",
-    output_dataframe_op=lambda df: df.describe(),
-)
-```
-```
-ls -1 *.csv | python3 describem.py "/dev/stdout" --output-filetype show
-```
-
 Use `--init-eval` to configure Polars before processing begins, e.g., to set `pl.Config.set_engine_affinity` to prefer the streaming engine.
 ```
 ls -1 *.csv | python3 -m joinem out.pqt \
@@ -139,6 +123,12 @@ Expressions should evaluate to a callable and have access to polars as `pl`.
 ls -1 *.csv | python3 -m joinem out.pqt \
   --ipipe 'lambda df: df.with_columns(pl.len().alias("n"))' \
   --opipe 'pl.LazyFrame.unique'
+```
+
+Combine `--opipe` with `show` to pretty print summary statistics to stdout.
+```
+ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
+  --opipe 'pl.LazyFrame.describe'
 ```
 
 ## API
@@ -244,7 +234,8 @@ options:
                         csv, parquet, json, feather
   --output-filetype OUTPUT_FILETYPE
                         Filetype of output. Otherwise, inferred. Example:
-                        csv, parquet
+                        csv, parquet. Use show to pretty print the full
+                        table.
   --read-kwarg READ_KWARGS
                         Additional keyword arguments to pass to pl.read_* or
                         pl.scan_* call(s). Provide as 'key=value'. Specify

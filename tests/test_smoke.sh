@@ -59,8 +59,6 @@ find assets/z.*csv | python3 -m joinem out/z0.pqt --with-column 'pl.col("q").cas
 find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
 find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --eager-write --progress
 
-find assets/x*.csv | python3 -c 'import joinem; joinem.dataframe_cli(description="", module="describem", version="0", output_dataframe_op=lambda df: df.describe())' "/dev/stdout" --output-filetype show > out/describe_stdout
-
 cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --read-kwarg infer_schema_length=None --output-filetype csv --input-filetype csv > out/stdout
 
 cat assets/x.0.csv.gz | python3 -m joinem "/dev/stdout" --stdin --output-filetype csv --input-filetype csv --shrink-dtypes > out/stdout
@@ -158,3 +156,7 @@ find assets/x.*csv | python3 -m joinem out/pipe_readme.pqt \
 # --shrink-dtypes should narrow numeric columns (Int64 a, Float64 b in source)
 find assets/x.*csv | python3 -m joinem out/shrink.pqt --shrink-dtypes
 python3 -c 'import polars as pl; s = pl.read_parquet("out/shrink.pqt").schema; assert s["a"] != pl.Int64 and s["b"] == pl.Float32, s'
+
+# README --opipe + show example
+find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
+  --opipe 'pl.LazyFrame.describe' > out/describe_stdout
