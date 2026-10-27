@@ -29,6 +29,9 @@
 - Supports CSV, JSON, parquet, and feather output files.
     - JSON output is newline-delimited (`.json`, `.jsonl`, or `.ndjson`).
     - Compressed output is supported: `.csv.gz`, `.csv.zst`, `.json.gz`, `.json.zst`, `.jsonl.gz`, `.jsonl.zst`, `.ndjson.gz`, and `.ndjson.zst` (requires a recent polars).
+- Supports pretty-printed text output, with no row or column truncation.
+    - `.ascii` or `.txt` prints the full table.
+    - `.summary` prints summary statistics, from polars `describe`.
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Logs bytes written and write throughput with `--progress`.
 - Add programatically-generated columns to output.
@@ -101,6 +104,14 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
   --with-column 'pl.col("myValue").cast(pl.Categorical)' \
   --write-kwarg 'compression="lz4"' \
   | pv > concat.pqt
+```
+
+Pretty print the full table, or summary statistics, to stdout.
+Use `--write-kwarg` to pass `pl.Config` settings, such as table formatting.
+```
+ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype ascii
+ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype summary \
+  --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
 ```
 
 Use `--init-eval` to configure Polars before processing begins, e.g., to set `pl.Config.set_engine_affinity` to prefer the streaming engine.
