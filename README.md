@@ -111,9 +111,6 @@ ls -1 *.csv | python3 -m joinem out.pqt \
 
 Use `--ipipe` and `--opipe` to transform each input frame (before concatenation) or the output frame via `df.pipe(...)`.
 Expressions should evaluate to a callable and have access to polars as `pl` and the default dataframe op as `op`.
-Both flags default to `op`.
-In joinem itself, `op` is a no-op (identity).
-When joinem's `dataframe_cli` serves as the backing CLI engine for another library, `op` is that library's `input_dataframe_op` or `output_dataframe_op`, so wrap it (e.g., `lambda df: op(df)...`) to keep its behavior, or omit it to skip it.
 ```
 ls -1 *.csv | python3 -m joinem out.pqt \
   --ipipe 'lambda df: op(df).with_columns(pl.len().alias("n"))' \
