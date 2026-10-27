@@ -128,7 +128,8 @@ ls -1 *.csv | python3 -m joinem out.pqt \
 Combine `--opipe` with `show` to pretty print summary statistics to stdout.
 ```
 ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
-  --opipe 'pl.LazyFrame.describe' --write-kwarg 'limit=None'
+  --opipe 'pl.LazyFrame.describe' \
+  --write-kwarg 'limit=None' --write-kwarg 'tbl_cols=-1'
 ```
 
 Similarly, pretty print a column-wise preview from `glimpse`.

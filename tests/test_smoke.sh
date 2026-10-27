@@ -165,7 +165,8 @@ python3 -c 'import polars as pl; s = pl.read_parquet("out/shrink.pqt").schema; a
 
 # README --opipe + show example
 find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
-  --opipe 'pl.LazyFrame.describe' --write-kwarg 'limit=None' > out/describe_stdout
+  --opipe 'pl.LazyFrame.describe' \
+  --write-kwarg 'limit=None' --write-kwarg 'tbl_cols=-1' > out/describe_stdout
 
 # README --opipe + show glimpse example
 find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
