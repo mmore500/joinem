@@ -58,8 +58,8 @@ find assets/z.*csv | python3 -m joinem out/z0.pqt --with-column 'pl.col("q").cas
 
 find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show
 find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --eager-write --progress
-find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.summary --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
-find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype summary > out/summary_stdout
+find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.describe --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
+find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype describe > out/describe_stdout
 
 cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --read-kwarg infer_schema_length=None --output-filetype csv --input-filetype csv > out/stdout
 

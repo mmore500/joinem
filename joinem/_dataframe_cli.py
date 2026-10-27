@@ -81,10 +81,10 @@ def _make_text_writer(
 
 
 _write_show = _make_text_writer(lambda df: df)
-_write_summary = _make_text_writer(pl.DataFrame.describe)
+_write_describe = _make_text_writer(pl.DataFrame.describe)
 _text_writers = {
     ".show": _write_show,
-    ".summary": _write_summary,
+    ".describe": _write_describe,
 }
 
 
@@ -608,7 +608,7 @@ def _add_parser_core(
             "Filetype of output. Otherwise, inferred. "
             "Example: csv, parquet. "
             "Use show to pretty print the full table, "
-            "or summary to pretty print summary statistics."
+            "or describe to pretty print summary statistics."
         ),
         type=str,
     )
