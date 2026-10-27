@@ -58,34 +58,20 @@ def _make_compressed_writer(
     )
 
 
-def _make_text_writer(
-    render: typing.Callable[[pl.DataFrame], typing.Any],
-) -> typing.Callable:
-    # render frame as polars pretty-printed table, without row/col truncation
+def _write_show(
+    frame: typing.Union[pl.DataFrame, pl.LazyFrame],
+    path: str,
+    **kwargs,
+) -> None:
+    # write polars pretty-printed table, without row/col truncation
     # kwargs override pl.Config settings, e.g., tbl_formatting="ASCII_FULL"
-
-    def write(
-        frame: typing.Union[pl.DataFrame, pl.LazyFrame],
-        path: str,
-        **kwargs,
-    ) -> None:
-        if isinstance(frame, pl.LazyFrame):
-            frame = frame.collect()
-        config = {"tbl_rows": -1, "tbl_cols": -1, **kwargs}
-        with pl.Config(**config):
-            text = str(render(frame))
-        with open(path, "w") as f:
-            f.write(text + "\n")
-
-    return write
-
-
-_write_show = _make_text_writer(lambda df: df)
-_write_describe = _make_text_writer(pl.DataFrame.describe)
-_text_writers = {
-    ".show": _write_show,
-    ".describe": _write_describe,
-}
+    if isinstance(frame, pl.LazyFrame):
+        frame = frame.collect()
+    config = {"tbl_rows": -1, "tbl_cols": -1, **kwargs}
+    with pl.Config(**config):
+        text = str(frame)
+    with open(path, "w") as f:
+        f.write(text + "\n")
 
 
 def _get_scanner(filepath: str) -> typing.Callable:
@@ -172,7 +158,7 @@ def _get_sink(filepath: str) -> typing.Callable:
             ),
             ".parquet": pl.LazyFrame.sink_parquet,
             ".pqt": pl.LazyFrame.sink_parquet,
-            **_text_writers,
+            ".show": _write_show,
         }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
@@ -212,7 +198,7 @@ def _get_write(filepath: str) -> typing.Callable:
             ),
             ".parquet": pl.DataFrame.write_parquet,
             ".pqt": pl.DataFrame.write_parquet,
-            **_text_writers,
+            ".show": _write_show,
         }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
@@ -607,8 +593,7 @@ def _add_parser_core(
         help=(
             "Filetype of output. Otherwise, inferred. "
             "Example: csv, parquet. "
-            "Use show to pretty print the full table, "
-            "or describe to pretty print summary statistics."
+            "Use show to pretty print the full table."
         ),
         type=str,
     )

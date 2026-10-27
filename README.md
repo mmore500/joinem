@@ -29,9 +29,7 @@
 - Supports CSV, JSON, parquet, and feather output files.
     - JSON output is newline-delimited (`.json`, `.jsonl`, or `.ndjson`).
     - Compressed output is supported: `.csv.gz`, `.csv.zst`, `.json.gz`, `.json.zst`, `.jsonl.gz`, `.jsonl.zst`, `.ndjson.gz`, and `.ndjson.zst` (requires a recent polars).
-- Supports pretty-printed text output, with no row or column truncation.
-    - `.show` prints the full table, like polars `DataFrame.show`.
-    - `.describe` prints summary statistics, like polars `DataFrame.describe`.
+- Supports pretty-printed text output (`.show`), with no row or column truncation.
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Logs bytes written and write throughput with `--progress`.
 - Add programatically-generated columns to output.
@@ -106,12 +104,27 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
   | pv > concat.pqt
 ```
 
-Pretty print the full table, or summary statistics, to stdout.
+Pretty print the full table to stdout.
 Use `--write-kwarg` to pass `pl.Config` settings, such as table formatting.
 ```
-ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show
-ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype describe \
+ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
   --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
+```
+
+Build a custom CLI with `joinem.dataframe_cli` to transform the result before writing, e.g., to pretty print summary statistics to stdout.
+```python
+# describem.py
+import joinem
+
+joinem.dataframe_cli(
+    description="Print summary statistics of concatenated data.",
+    module="describem",
+    version="0.0.0",
+    output_dataframe_op=lambda df: df.describe(),
+)
+```
+```
+ls -1 *.csv | python3 describem.py "/dev/stdout" --output-filetype show
 ```
 
 Use `--init-eval` to configure Polars before processing begins, e.g., to set `pl.Config.set_engine_affinity` to prefer the streaming engine.
