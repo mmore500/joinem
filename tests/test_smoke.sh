@@ -58,6 +58,12 @@ find assets/z.*csv | python3 -m joinem out/z0.pqt --with-column 'pl.col("q").cas
 
 find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
 find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --eager-write --progress
+find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --write-kwarg 'limit=None' --write-kwarg 'tbl_cols=-1'
+find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.show --eager-write --write-kwarg 'limit=None'
+
+# README show example
+find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
+  --write-kwarg 'limit=None' --write-kwarg 'tbl_cols=-1' > out/show_stdout
 
 cat assets/x.0.csv | python3 -m joinem "/dev/stdout" --stdin --read-kwarg infer_schema_length=None --output-filetype csv --input-filetype csv > out/stdout
 
@@ -159,9 +165,10 @@ python3 -c 'import polars as pl; s = pl.read_parquet("out/shrink.pqt").schema; a
 
 # README --opipe + show example
 find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
-  --opipe 'pl.LazyFrame.describe' > out/describe_stdout
+  --opipe 'pl.LazyFrame.describe' --write-kwarg 'limit=None' > out/describe_stdout
 
 # README --opipe + show glimpse example
 find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
   --opipe 'lambda df: df.collect().glimpse(return_type="frame")' \
-  --write-kwarg 'fmt_table_cell_list_len=-1' --write-kwarg 'fmt_str_lengths=1000' > out/glimpse_stdout
+  --write-kwarg 'limit=None' --write-kwarg 'fmt_table_cell_list_len=-1' \
+  --write-kwarg 'fmt_str_lengths=1000' > out/glimpse_stdout

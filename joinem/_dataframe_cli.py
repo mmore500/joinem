@@ -65,9 +65,9 @@ def _write_show(
 ) -> None:
     with open(path, "w") as f, contextlib.redirect_stdout(f):
         try:
-            frame.show(limit=None, tbl_cols=-1, **show_kwargs)
+            frame.show(**show_kwargs)
         except ValueError:
-            frame.lazy().collect().show(limit=None, tbl_cols=-1, **show_kwargs)
+            frame.lazy().collect().show(**show_kwargs)
 
 
 def _get_scanner(filepath: str) -> typing.Callable:
@@ -589,7 +589,7 @@ def _add_parser_core(
         help=(
             "Filetype of output. Otherwise, inferred. "
             "Example: csv, parquet. "
-            "Use show to pretty print the full table."
+            "Use show to pretty print via DataFrame.show."
         ),
         type=str,
     )

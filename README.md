@@ -29,7 +29,7 @@
 - Supports CSV, JSON, parquet, and feather output files.
     - JSON output is newline-delimited (`.json`, `.jsonl`, or `.ndjson`).
     - Compressed output is supported: `.csv.gz`, `.csv.zst`, `.json.gz`, `.json.zst`, `.jsonl.gz`, `.jsonl.zst`, `.ndjson.gz`, and `.ndjson.zst` (requires a recent polars).
-- Supports pretty-printed text output (`.show`), with no row or column truncation.
+- Supports pretty-printed text output (`.show`), via polars `DataFrame.show`.
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Logs bytes written and write throughput with `--progress`.
 - Add programatically-generated columns to output.
@@ -104,11 +104,11 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
   | pv > concat.pqt
 ```
 
-Pretty print the full table to stdout.
-Use `--write-kwarg` to pass `DataFrame.show` settings, such as table formatting.
+Pretty print to stdout via `DataFrame.show`.
+Use `--write-kwarg` to pass `DataFrame.show` settings, e.g., to print all rows and columns.
 ```
 ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
-  --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
+  --write-kwarg 'limit=None' --write-kwarg 'tbl_cols=-1'
 ```
 
 Use `--init-eval` to configure Polars before processing begins, e.g., to set `pl.Config.set_engine_affinity` to prefer the streaming engine.
@@ -128,14 +128,15 @@ ls -1 *.csv | python3 -m joinem out.pqt \
 Combine `--opipe` with `show` to pretty print summary statistics to stdout.
 ```
 ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
-  --opipe 'pl.LazyFrame.describe'
+  --opipe 'pl.LazyFrame.describe' --write-kwarg 'limit=None'
 ```
 
 Similarly, pretty print a column-wise preview from `glimpse`.
 ```
 ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
   --opipe 'lambda df: df.collect().glimpse(return_type="frame")' \
-  --write-kwarg 'fmt_table_cell_list_len=-1' --write-kwarg 'fmt_str_lengths=1000'
+  --write-kwarg 'limit=None' --write-kwarg 'fmt_table_cell_list_len=-1' \
+  --write-kwarg 'fmt_str_lengths=1000'
 ```
 
 ## API
@@ -241,8 +242,8 @@ options:
                         csv, parquet, json, feather
   --output-filetype OUTPUT_FILETYPE
                         Filetype of output. Otherwise, inferred. Example:
-                        csv, parquet. Use show to pretty print the full
-                        table.
+                        csv, parquet. Use show to pretty print via
+                        DataFrame.show.
   --read-kwarg READ_KWARGS
                         Additional keyword arguments to pass to pl.read_* or
                         pl.scan_* call(s). Provide as 'key=value'. Specify
