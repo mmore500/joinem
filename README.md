@@ -104,7 +104,7 @@ ls -1 input/*.pqt | python3 -m joinem "/dev/stdout" --output-filetype pqt \
   | pv > concat.pqt
 ```
 
-Pretty print to stdout via `DataFrame.show`.
+Write pretty print to stdout.
 Use `--write-kwarg` to pass `DataFrame.show` settings, e.g., to print all rows and columns.
 ```
 ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
