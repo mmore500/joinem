@@ -29,9 +29,7 @@
 - Supports CSV, JSON, parquet, and feather output files.
     - JSON output is newline-delimited (`.json`, `.jsonl`, or `.ndjson`).
     - Compressed output is supported: `.csv.gz`, `.csv.zst`, `.json.gz`, `.json.zst`, `.jsonl.gz`, `.jsonl.zst`, `.ndjson.gz`, and `.ndjson.zst` (requires a recent polars).
-- Supports pretty-printed text output, with no row or column truncation.
-    - `.show` prints the table via polars `DataFrame.show`.
-    - `.string` prints the table via `str()`, under polars `pl.Config` options.
+- Supports pretty-printed text output (`.show`), with no row or column truncation.
 - Allows mismatched columns and/or empty data files with `--how diagonal` and `--how diagonal_relaxed`.
 - Logs bytes written and write throughput with `--progress`.
 - Add programatically-generated columns to output.
@@ -111,13 +109,6 @@ Use `--write-kwarg` to pass `DataFrame.show` settings, such as table formatting.
 ```
 ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
   --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
-```
-
-Alternatively, use the `string` output type to pretty print via `str()`.
-Use `--write-kwarg` to pass `pl.Config` options.
-```
-ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype string \
-  --write-kwarg 'tbl_hide_dataframe_shape=True'
 ```
 
 Use `--init-eval` to configure Polars before processing begins, e.g., to set `pl.Config.set_engine_affinity` to prefer the streaming engine.
@@ -251,8 +242,7 @@ options:
   --output-filetype OUTPUT_FILETYPE
                         Filetype of output. Otherwise, inferred. Example:
                         csv, parquet. Use show to pretty print the full
-                        table via DataFrame.show, or string to pretty print
-                        it via str() under pl.Config.
+                        table.
   --read-kwarg READ_KWARGS
                         Additional keyword arguments to pass to pl.read_* or
                         pl.scan_* call(s). Provide as 'key=value'. Specify

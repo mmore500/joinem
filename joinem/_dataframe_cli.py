@@ -66,27 +66,15 @@ def _write_show(
 ) -> None:
     # write DataFrame.show output, without row/col truncation
     # kwargs override show settings, e.g., tbl_formatting="ASCII_FULL"
-    # collect, because LazyFrame.show does not support limit=None
+    kwargs = {"limit": None, "tbl_cols": -1, **kwargs}
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        frame.lazy().collect().show(
-            **{"limit": None, "tbl_cols": -1, **kwargs}
-        )
+        try:
+            frame.show(**kwargs)
+        except ValueError:  # LazyFrame.show does not support limit=None
+            frame.lazy().collect().show(**kwargs)
     with open(path, "w") as f:
         print(buf.getvalue(), end="", file=f)
-
-
-def _write_string(
-    frame: typing.Union[pl.DataFrame, pl.LazyFrame],
-    path: str,
-    **kwargs,
-) -> None:
-    # write str(frame), without row/col truncation
-    # kwargs override pl.Config options, e.g., tbl_formatting="ASCII_FULL"
-    with pl.Config(**{"tbl_rows": -1, "tbl_cols": -1, **kwargs}):
-        text = str(frame.lazy().collect())
-    with open(path, "w") as f:
-        print(text, file=f)
 
 
 def _get_scanner(filepath: str) -> typing.Callable:
@@ -174,7 +162,6 @@ def _get_sink(filepath: str) -> typing.Callable:
             ".parquet": pl.LazyFrame.sink_parquet,
             ".pqt": pl.LazyFrame.sink_parquet,
             ".show": _write_show,
-            ".string": _write_string,
         }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
@@ -215,7 +202,6 @@ def _get_write(filepath: str) -> typing.Callable:
             ".parquet": pl.DataFrame.write_parquet,
             ".pqt": pl.DataFrame.write_parquet,
             ".show": _write_show,
-            ".string": _write_string,
         }[ext]
     except KeyError:
         raise ValueError(f"Unknown file type for {filepath}, ext={ext}")
@@ -610,8 +596,7 @@ def _add_parser_core(
         help=(
             "Filetype of output. Otherwise, inferred. "
             "Example: csv, parquet. "
-            "Use show to pretty print the full table via DataFrame.show, "
-            "or string to pretty print it via str() under pl.Config."
+            "Use show to pretty print the full table."
         ),
         type=str,
     )
