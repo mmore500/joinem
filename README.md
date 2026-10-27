@@ -109,6 +109,14 @@ ls -1 *.csv | python3 -m joinem out.pqt \
   --init-eval 'pl.Config.set_engine_affinity(engine="streaming")'
 ```
 
+Use `--ipipe` and `--opipe` to transform each input frame (before concatenation) or the output frame via `df.pipe(...)`.
+Expressions should evaluate to a callable and have access to polars as `pl` and the default dataframe op as `op`.
+```
+ls -1 *.csv | python3 -m joinem out.pqt \
+  --ipipe 'lambda df: op(df).with_columns(pl.len().alias("n"))' \
+  --opipe 'lambda df: op(df).unique()'
+```
+
 ## API
 
 ```
@@ -117,9 +125,9 @@ usage: __main__.py [-h] [--version] [--progress] [--stdin] [--drop DROP]
                    [--filter FILTERS] [--head HEAD] [--tail TAIL]
                    [--gather-every GATHER_EVERY] [--sample SAMPLE]
                    [--sample-stratify SAMPLE_STRATIFY] [--shuffle]
-                   [--seed SEED] [--init-eval INIT_EVALS]
-                   [--with-column WITH_COLUMNS] [--shrink-dtypes]
-                   [--string-cache]
+                   [--seed SEED] [--init-eval INIT_EVALS] [--ipipe IPIPE]
+                   [--opipe OPIPE] [--with-column WITH_COLUMNS]
+                   [--shrink-dtypes] [--string-cache]
                    [--how {vertical,vertical_relaxed,diagonal,diagonal_relaxed,horizontal,align,align_full,align_inner,align_left,align_right}]
                    [--input-filetype INPUT_FILETYPE]
                    [--output-filetype OUTPUT_FILETYPE]
@@ -177,6 +185,16 @@ options:
                         access to polars as `pl`. Flag may be repeated to
                         provide multiple expressions. Example:
                         'pl.Config.set_engine_affinity(engine="streaming")'
+  --ipipe IPIPE         Expression evaluating to a callable applied to each
+                        input frame, before concatenation, via `df.pipe(...)`.
+                        Has access to polars as `pl` and the default input
+                        dataframe op as `op`. Default: 'op'. Example: 'lambda
+                        df: op(df).with_columns(pl.lit(1).alias("one"))'
+  --opipe OPIPE         Expression evaluating to a callable applied to the
+                        concatenated output frame via `df.pipe(...)`. Has
+                        access to polars as `pl` and the default output
+                        dataframe op as `op`. Default: 'op'. Example: 'lambda
+                        df: op(df).unique()'
   --with-column WITH_COLUMNS
                         Expression to be evaluated to add a column, has
                         access to each datafile's filepath as `filepath` and
