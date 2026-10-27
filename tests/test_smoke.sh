@@ -141,6 +141,15 @@ python3 -c 'import polars as pl; d = pl.read_csv("out/strat6.csv"); assert d.hei
 find out/strat_in.csv | python3 -m joinem out/frac.csv --sample 0.5 --seed 1
 [ "$(( $(wc -l < out/frac.csv) - 1 ))" -eq 5 ]
 
+find assets/x.*csv | python3 -m joinem out/ipipe.csv --ipipe 'lambda df: op(df).with_columns(pl.lit(1).alias("one"))'
+
+find assets/x.*csv | python3 -m joinem out/opipe.csv --opipe 'pl.LazyFrame.describe'
+
+# README --ipipe/--opipe example
+find assets/x.*csv | python3 -m joinem out/pipe_readme.pqt \
+  --ipipe 'lambda df: df.with_columns(pl.len().alias("n"))' \
+  --opipe 'pl.LazyFrame.unique'
+
 # --shrink-dtypes should narrow numeric columns (Int64 a, Float64 b in source)
 find assets/x.*csv | python3 -m joinem out/shrink.pqt --shrink-dtypes
 python3 -c 'import polars as pl; s = pl.read_parquet("out/shrink.pqt").schema; assert s["a"] != pl.Int64 and s["b"] == pl.Float32, s'

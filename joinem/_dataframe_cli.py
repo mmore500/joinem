@@ -243,6 +243,16 @@ def _eval_sample(sample: str) -> typing.Union[int, float, pl.Expr]:
         sys.exit(1)
 
 
+def _eval_pipe(pipe: str, op: typing.Callable, flag: str) -> typing.Callable:
+    try:
+        return eval(pipe, {"pl": pl, "op": op})
+    except Exception as e:
+        logging.error(
+            "Failed to parse %s expression `%s` error: %s", flag, pipe, e
+        )
+        sys.exit(1)
+
+
 def _eval_kwargs(kwargs_list: typing.List[str]) -> typing.Dict:
     to_eval = f"dict({','.join(kwargs_list)})"
     try:
@@ -471,6 +481,38 @@ def _add_parser_core(
     )
     _try_add_argument(
         parser,
+        "--ipipe",
+        default="op",
+        dest="ipipe",
+        help=(
+            "Expression evaluating to a callable applied to each input "
+            "frame, before concatenation, via `df.pipe(...)`. "
+            "Has access to polars as `pl` and the default input dataframe "
+            "op as `op`, which is a no-op for joinem itself but may do work "
+            "when joinem is the backing CLI engine for another tool. "
+            "Default: 'op'. Example: "
+            r"""'lambda df: op(df).with_columns(pl.lit(1).alias("one"))'"""
+        ),
+        type=str,
+    )
+    _try_add_argument(
+        parser,
+        "--opipe",
+        default="op",
+        dest="opipe",
+        help=(
+            "Expression evaluating to a callable applied to the "
+            "concatenated output frame via `df.pipe(...)`. "
+            "Has access to polars as `pl` and the default output dataframe "
+            "op as `op`, which is a no-op for joinem itself but may do work "
+            "when joinem is the backing CLI engine for another tool. "
+            "Default: 'op'. Example: "
+            r"""'lambda df: op(df).unique()'"""
+        ),
+        type=str,
+    )
+    _try_add_argument(
+        parser,
         "--with-column",
         action="append",
         default=[],
@@ -620,7 +662,8 @@ def _run_dataframe_cli(
             ("stdin",),
         ][args.stdin]
     )
-    lazy_frames = map(lambda x: x.lazy(), map(input_dataframe_op, lazy_frames))
+    ipipe = _eval_pipe(args.ipipe, input_dataframe_op, "--ipipe")
+    lazy_frames = (df.pipe(ipipe).lazy() for df in lazy_frames)
     try:
         result = pl.concat(lazy_frames, how=args.how, rechunk=False)
     except ValueError as e:
@@ -662,7 +705,8 @@ def _run_dataframe_cli(
         )
     if args.shuffle:
         result = result.collect().sample(shuffle=True, seed=args.seed).lazy()
-    result = output_dataframe_op(result).lazy()
+    opipe = _eval_pipe(args.opipe, output_dataframe_op, "--opipe")
+    result = result.pipe(opipe).lazy()
 
     if args.shrink_dtypes:
         result = (
