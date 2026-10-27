@@ -2,7 +2,6 @@ import argparse
 import contextlib
 import functools
 import inspect
-import io
 import logging
 import os
 import subprocess
@@ -64,14 +63,11 @@ def _write_show(
     path: str,
     show_kwargs: typing.Dict,
 ) -> None:
-    buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
+    with open(path, "w") as f, contextlib.redirect_stdout(f):
         try:
             frame.show(limit=None, tbl_cols=-1, **show_kwargs)
         except ValueError:
             frame.lazy().collect().show(limit=None, tbl_cols=-1, **show_kwargs)
-    with open(path, "w") as f:
-        print(buf.getvalue(), end="", file=f)
 
 
 def _get_scanner(filepath: str) -> typing.Callable:
