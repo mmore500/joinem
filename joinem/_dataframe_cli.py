@@ -488,7 +488,9 @@ def _add_parser_core(
             "Expression evaluating to a callable applied to each input "
             "frame, before concatenation, via `df.pipe(...)`. "
             "Has access to polars as `pl` and the default input dataframe "
-            "op as `op`. Default: 'op'. Example: "
+            "op as `op`, which is a no-op for joinem itself but may do work "
+            "when joinem is the backing CLI engine for another tool. "
+            "Default: 'op'. Example: "
             r"""'lambda df: op(df).with_columns(pl.lit(1).alias("one"))'"""
         ),
         type=str,
@@ -502,7 +504,9 @@ def _add_parser_core(
             "Expression evaluating to a callable applied to the "
             "concatenated output frame via `df.pipe(...)`. "
             "Has access to polars as `pl` and the default output dataframe "
-            "op as `op`. Default: 'op'. Example: "
+            "op as `op`, which is a no-op for joinem itself but may do work "
+            "when joinem is the backing CLI engine for another tool. "
+            "Default: 'op'. Example: "
             r"""'lambda df: op(df).unique()'"""
         ),
         type=str,

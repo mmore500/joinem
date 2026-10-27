@@ -111,6 +111,9 @@ ls -1 *.csv | python3 -m joinem out.pqt \
 
 Use `--ipipe` and `--opipe` to transform each input frame (before concatenation) or the output frame via `df.pipe(...)`.
 Expressions should evaluate to a callable and have access to polars as `pl` and the default dataframe op as `op`.
+Both flags default to `op`.
+In joinem itself, `op` is a no-op (identity).
+When joinem's `dataframe_cli` serves as the backing CLI engine for another library, `op` is that library's `input_dataframe_op` or `output_dataframe_op`, so wrap it (e.g., `lambda df: op(df)...`) to keep its behavior, or omit it to skip it.
 ```
 ls -1 *.csv | python3 -m joinem out.pqt \
   --ipipe 'lambda df: op(df).with_columns(pl.len().alias("n"))' \
@@ -188,13 +191,18 @@ options:
   --ipipe IPIPE         Expression evaluating to a callable applied to each
                         input frame, before concatenation, via `df.pipe(...)`.
                         Has access to polars as `pl` and the default input
-                        dataframe op as `op`. Default: 'op'. Example: 'lambda
-                        df: op(df).with_columns(pl.lit(1).alias("one"))'
+                        dataframe op as `op`, which is a no-op for joinem
+                        itself but may do work when joinem is the backing CLI
+                        engine for another tool. Default: 'op'. Example:
+                        'lambda df:
+                        op(df).with_columns(pl.lit(1).alias("one"))'
   --opipe OPIPE         Expression evaluating to a callable applied to the
                         concatenated output frame via `df.pipe(...)`. Has
                         access to polars as `pl` and the default output
-                        dataframe op as `op`. Default: 'op'. Example: 'lambda
-                        df: op(df).unique()'
+                        dataframe op as `op`, which is a no-op for joinem
+                        itself but may do work when joinem is the backing CLI
+                        engine for another tool. Default: 'op'. Example:
+                        'lambda df: op(df).unique()'
   --with-column WITH_COLUMNS
                         Expression to be evaluated to add a column, has
                         access to each datafile's filepath as `filepath` and
