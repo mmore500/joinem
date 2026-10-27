@@ -136,8 +136,6 @@ Similarly, pretty print a column-wise preview from `glimpse`.
 ```
 ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
   --opipe 'lambda df: df.collect().glimpse(return_type="frame")' \
-  --write-kwarg 'limit=None' --write-kwarg 'fmt_table_cell_list_len=-1' \
-  --write-kwarg 'fmt_str_lengths=1000'
 ```
 
 ## API
