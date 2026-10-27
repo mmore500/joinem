@@ -80,11 +80,11 @@ def _make_text_writer(
     return write
 
 
-_write_ascii = _make_text_writer(lambda df: df)
+_write_display = _make_text_writer(lambda df: df)
 _write_summary = _make_text_writer(pl.DataFrame.describe)
 _text_writers = {
-    ".ascii": _write_ascii,
-    ".txt": _write_ascii,
+    ".display": _write_display,
+    ".txt": _write_display,
     ".summary": _write_summary,
 }
 
@@ -608,7 +608,7 @@ def _add_parser_core(
         help=(
             "Filetype of output. Otherwise, inferred. "
             "Example: csv, parquet. "
-            "Use ascii (or txt) to pretty print the full table, "
+            "Use display (or txt) to pretty print the full table, "
             "or summary to pretty print summary statistics."
         ),
         type=str,

@@ -56,7 +56,7 @@ find assets/x.*pqt | python3 -m joinem out/x2.csv --with-column 'pl.lit(2).alias
 
 find assets/z.*csv | python3 -m joinem out/z0.pqt --with-column 'pl.col("q").cast(pl.Categorical)' --string-cache --shrink-dtypes --write-kwarg 'compression_level=10' --write-kwarg 'compression="zstd"'
 
-find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.ascii
+find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.display
 find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.txt --eager-write --progress
 find assets/x*.csv assets/x*.pqt | python3 -m joinem out/x.summary --write-kwarg 'tbl_formatting="ASCII_MARKDOWN"'
 find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype summary > out/summary_stdout
