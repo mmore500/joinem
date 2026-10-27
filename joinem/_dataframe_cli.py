@@ -61,7 +61,7 @@ def _make_compressed_writer(
 def _write_show(
     frame: typing.Union[pl.DataFrame, pl.LazyFrame],
     path: str,
-    show_kwargs: typing.Dict,
+    **show_kwargs,
 ) -> None:
     with open(path, "w") as f, contextlib.redirect_stdout(f):
         try:
@@ -743,14 +743,12 @@ def _run_dataframe_cli(
         else contextlib.nullcontext(args.output_file)
     )
     with context as output_path:
-        writer = [_get_sink, _get_write][args.eager_write](
+        [_get_sink, _get_write][args.eager_write](
             args.output_file
             if args.output_filetype is None
             else args.output_filetype
+        )(
+            result.collect() if args.eager_write else result,
+            output_path,
+            **_eval_kwargs(args.write_kwargs),
         )
-        frame = result.collect() if args.eager_write else result
-        write_kwargs = _eval_kwargs(args.write_kwargs)
-        if writer is _write_show:
-            writer(frame, output_path, write_kwargs)
-        else:
-            writer(frame, output_path, **write_kwargs)
