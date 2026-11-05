@@ -19,7 +19,12 @@ def _label_rows(
     kwargs = {"minit": "++", **kmeans_kwargs}
     with warnings.catch_warnings():
         # empty clusters are reported once below instead
-        warnings.simplefilter("ignore")
+        warnings.filterwarnings(
+            "ignore", "One of the clusters is empty", UserWarning
+        )
+        warnings.filterwarnings(  # mean of an empty cluster
+            "ignore", "invalid value encountered in divide", RuntimeWarning
+        )
         __, labels = kmeans2(X.astype(float), n_group, rng=seed, **kwargs)
     __, labels = np.unique(labels, return_inverse=True)  # drop empty ids
     n_found = labels.max() + 1
@@ -55,7 +60,7 @@ def group_id_kmeans(
         Number of clusters. Clipped, with a warning, to the number of
         non-null rows.
     seed : int, optional
-        Seed for cluster initialization. If None, groups vary across runs.
+        Seed for cluster initialization.
     kmeans_kwargs : mapping, optional
         Additional keyword arguments for `scipy.cluster.vq.kmeans2`, such
         as `iter`. Overrides default `minit="++"`.
@@ -78,10 +83,8 @@ def group_id_kmeans(
 
     Notes
     -----
-    Clusters cover space rather than rows: sparse regions get groups of
-    their own, so group sizes are uneven. Fewer than `n_group` groups
-    result, with a warning, if some clusters come out empty (e.g., with
-    few distinct points).
+    Fewer than `n_group` groups result, with a warning, if some clusters
+    come out empty (e.g., with few distinct points).
 
     Groups are computed over all rows in the evaluation context; within
     `.over(...)`, groups are computed separately per window.
