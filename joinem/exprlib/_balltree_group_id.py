@@ -12,10 +12,7 @@ from ._impl import tree_group_label_tree_order, tree_group_make_id_expr
 def _label_rows(
     X: np.ndarray, n_group: int, balltree_kwargs: typing.Mapping
 ) -> np.ndarray:
-    # leaf_size=1 is required: rows within a leaf are in arbitrary order, so
-    # leaves larger than groups make groups spatially arbitrary; passing
-    # leaf_size raises TypeError (multiple values for keyword argument)
-    tree = BallTree(X, leaf_size=1, **balltree_kwargs)
+    tree = BallTree(X, leaf_size=1, **balltree_kwargs)  # leaves are unordered
     __, tree_order, __, __ = tree.get_arrays()
     return tree_group_label_tree_order(tree_order, n_group)
 

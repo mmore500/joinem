@@ -12,11 +12,8 @@ from ._impl import tree_group_label_tree_order, tree_group_make_id_expr
 def _label_rows(
     X: np.ndarray, n_group: int, kdtree_kwargs: typing.Mapping
 ) -> np.ndarray:
-    # leafsize=1 is required: rows within a leaf are in arbitrary order, so
-    # leaves larger than groups make groups spatially arbitrary; passing
-    # leafsize raises TypeError (multiple values for keyword argument)
-    kwargs = {"balanced_tree": True, **kdtree_kwargs}  # tunable default
-    tree = cKDTree(X, leafsize=1, **kwargs)
+    kwargs = {"balanced_tree": True, **kdtree_kwargs}
+    tree = cKDTree(X, leafsize=1, **kwargs)  # leaves are unordered
     return tree_group_label_tree_order(tree.indices, n_group)
 
 
