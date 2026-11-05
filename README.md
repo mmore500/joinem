@@ -144,6 +144,8 @@ Eval'ed expressions also have access to joinem's helper libraries:
 
 - `jepl` (`joinem.pipelib`): factories for frame-to-frame callables, for use with `--ipipe`/`--opipe`.
     - `SampleOp(n=None, *, fraction=None, with_replacement=False, shuffle=False, seed=None, stratify=None)`: sample rows, mirroring `pl.DataFrame.sample`, optionally stratified by one or more column names and/or expressions.
+    - `PipeUnaryOpsOp(*unary_ops, progress_wrap=lambda x: x)`: compound op that applies `unary_ops` in order.
+    - `pipe_unary_ops(df, *unary_ops, progress_wrap=lambda x: x)`: apply `unary_ops` to `df` in order.
 - `jexl` (`joinem.exprlib`): polars expression factories, for use anywhere expressions are eval'ed (e.g., `--with-column`, `--filter`, `--sample`, `--ipipe`/`--opipe`).
     - `standard_scaled(expr)`: zero mean, unit variance.
     - `minmax_scaled(expr)`: rescale onto [0, 1].
@@ -156,6 +158,16 @@ ls -1 *.csv | python3 -m joinem out.pqt \
   --opipe 'jepl.SampleOp(2, seed=1, stratify=jexl.kdtree_group_id(
     [jexl.minmax_scaled("x"), pl.col("y").rank() / pl.len()], 100,
   ))'
+```
+
+Use `PipeUnaryOpsOp` to chain several ops into one `--ipipe`/`--opipe` expression.
+```
+ls -1 *.csv | python3 -m joinem out.pqt \
+  --opipe 'jepl.PipeUnaryOpsOp(
+    lambda df: df.with_columns(jexl.kdtree_group_id(["x", "y"], 100)),
+    jepl.SampleOp(2, stratify="kdtree_group_id", seed=1),
+    lambda df: df.sort("kdtree_group_id"),
+  )'
 ```
 
 These libraries are also importable directly, e.g., `from joinem.exprlib import kdtree_group_id`.

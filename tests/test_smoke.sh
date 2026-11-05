@@ -215,3 +215,8 @@ assert groups.height == 40 and counts.len() == 20 and (counts == 2).all()
 # quantile normalization spreads samples across skewed y
 assert groups["y_quantile"].min() < 0.1 < 0.9 < groups["y_quantile"].max()
 PYEOF
+
+# --opipe compound op via jepl.PipeUnaryOpsOp
+find out/xy_grid.csv | python3 -m joinem out/jepl_pipe_unary_ops.csv \
+  --opipe 'jepl.PipeUnaryOpsOp(lambda df: df.with_columns(jexl.kdtree_group_id(["x", "y"], 10)), jepl.SampleOp(1, stratify="kdtree_group_id", seed=1), lambda df: df.sort("kdtree_group_id"))'
+python3 -c 'import polars as pl; d = pl.read_csv("out/jepl_pipe_unary_ops.csv"); assert d["kdtree_group_id"].to_list() == list(range(10)), d'
