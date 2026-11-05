@@ -10,7 +10,7 @@ from ._tree_group_validate_n_group import tree_group_validate_n_group
 def tree_group_make_id_expr(
     on_dims: typing.Sequence[typing.Union[pl.Expr, str]],
     *,
-    n_group: typing.Union[int, float],
+    n_group: int,
     label_rows: typing.Callable[[np.ndarray, int], np.ndarray],
     name: str,
 ) -> pl.Expr:

@@ -21,7 +21,7 @@ def _label_rows(
 def kdtree_group_id(
     on_dims: typing.Sequence[typing.Union[pl.Expr, str]],
     *,
-    n_group: typing.Union[int, float],
+    n_group: int,
     kdtree_kwargs: typing.Mapping[str, typing.Any] = types.MappingProxyType(
         {}
     ),
@@ -37,10 +37,9 @@ def kdtree_group_id(
     on_dims : sequence of str or pl.Expr
         Coordinates for each row. Consider scaling with `standard_scaled`
         or `minmax_scaled` first.
-    n_group : int or float
-        Number of groups (int), or fraction of non-null rows (float in
-        (0, 1]). Clipped to the number of non-null rows, with a warning
-        if an int `n_group` exceeds it.
+    n_group : int
+        Number of groups. Clipped, with a warning, to the number of
+        non-null rows.
     kdtree_kwargs : mapping, optional
         Additional keyword arguments for `scipy.spatial.cKDTree`. Overrides
         default `balanced_tree=True`. Passing `leafsize` raises TypeError,
@@ -54,8 +53,7 @@ def kdtree_group_id(
     Raises
     ------
     ValueError
-        If `on_dims` is empty, or `n_group` is non-positive or a float
-        outside (0, 1].
+        If `on_dims` is empty, or `n_group` is not a positive int.
 
     See Also
     --------

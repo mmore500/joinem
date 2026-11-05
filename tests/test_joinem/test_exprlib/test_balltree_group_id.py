@@ -32,24 +32,18 @@ def test_group_count(df: pl.DataFrame, n_group: int, on_dims: list):
     assert sorted(res.unique()) == list(range(n_group))
 
 
-@pytest.mark.parametrize("fraction", [0.001, 0.01, 0.1, 0.5])
-def test_group_count_fraction(df: pl.DataFrame, fraction: float):
-    res = df.select(group_id(["x", "y"], n_group=fraction)).to_series()
-    assert res.n_unique() == max(1, int(fraction * len(df)))
-
-
 def test_group_count_clipped(df: pl.DataFrame):
     with pytest.warns(UserWarning, match="clipping to 1000 groups"):
         res = df.select(group_id(["x", "y"], n_group=5000)).to_series()
     assert res.n_unique() == len(df)
 
 
-@pytest.mark.parametrize("n_group", [1000, 1.0])
-def test_group_count_unclipped_no_warning(df: pl.DataFrame, n_group):
+@pytest.mark.parametrize("n_group", [1, 10, 1000])
+def test_group_count_unclipped_no_warning(df: pl.DataFrame, n_group: int):
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         res = df.select(group_id(["x", "y"], n_group=n_group)).to_series()
-    assert res.n_unique() == len(df)
+    assert res.n_unique() == n_group
 
 
 def test_group_count_clipped_nulls():
@@ -175,6 +169,8 @@ def test_n_group_keyword_only():
         (["x"], 0),
         (["x"], -1),
         (["x"], 0.0),
+        (["x"], 0.5),
+        (["x"], 1.0),
         (["x"], 1.5),
         (["x"], -0.5),
         (["x"], True),
