@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import polars as pl
 import pytest
@@ -36,10 +38,25 @@ def test_group_count_fraction(df: pl.DataFrame, fraction: float):
     assert res.n_unique() == max(1, int(fraction * len(df)))
 
 
-@pytest.mark.parametrize("n_group", [5000, 1.0])
-def test_group_count_clipped(df: pl.DataFrame, n_group):
-    res = df.select(group_id(["x", "y"], n_group=n_group)).to_series()
+def test_group_count_clipped(df: pl.DataFrame):
+    with pytest.warns(UserWarning, match="clipping to 1000 groups"):
+        res = df.select(group_id(["x", "y"], n_group=5000)).to_series()
     assert res.n_unique() == len(df)
+
+
+@pytest.mark.parametrize("n_group", [1000, 1.0])
+def test_group_count_unclipped_no_warning(df: pl.DataFrame, n_group):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        res = df.select(group_id(["x", "y"], n_group=n_group)).to_series()
+    assert res.n_unique() == len(df)
+
+
+def test_group_count_clipped_nulls():
+    df = pl.DataFrame({"x": [1.0, None, 3.0, None]})
+    with pytest.warns(UserWarning, match="2 non-null rows"):
+        res = df.select(group_id(["x"], n_group=3)).to_series()
+    assert res.drop_nulls().n_unique() == 2
 
 
 @pytest.mark.parametrize("n_group", [2, 7, 16, 100])

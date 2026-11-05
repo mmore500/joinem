@@ -39,7 +39,8 @@ def balltree_group_id(
         Consider scaling with `standard_scaled` or `minmax_scaled` first.
     n_group : int or float
         Number of groups (int), or fraction of non-null rows (float in
-        (0, 1]). Clipped to the number of non-null rows.
+        (0, 1]). Clipped to the number of non-null rows, with a warning
+        if an int `n_group` exceeds it.
     balltree_kwargs : mapping, optional
         Additional keyword arguments for `sklearn.neighbors.BallTree`, such
         as `metric`. Passing `leaf_size` raises TypeError, as `leaf_size=1`
