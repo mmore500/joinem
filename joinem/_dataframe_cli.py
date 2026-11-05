@@ -722,7 +722,11 @@ def _run_dataframe_cli(
             "__joinem_sampled__"
         )
     if args.shuffle:
-        result = result.collect().sample(shuffle=True, seed=args.seed).lazy()
+        result = result.collect().sample(
+            fraction=1,
+            shuffle=True,
+            seed=args.seed,
+        ).lazy()
     opipe = _eval_pipe(args.opipe, output_dataframe_op, "--opipe")
     result = result.pipe(opipe).lazy()
 
