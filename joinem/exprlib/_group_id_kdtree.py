@@ -55,12 +55,6 @@ def group_id_kdtree(
     ValueError
         If `on_dims` is empty, or `n_group` is not a positive int.
 
-    See Also
-    --------
-    group_id_balltree :
-        Ball tree counterpart, with ball-shaped rather than box-shaped
-        groups.
-
     Notes
     -----
     Groups are formed by cutting the tree's traversal order of rows into

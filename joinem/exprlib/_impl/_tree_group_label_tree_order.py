@@ -11,7 +11,7 @@ def tree_group_label_tree_order(
     ----------
     tree_order : np.ndarray
         Permutation of row indices in spatial tree traversal order, e.g.,
-        `cKDTree.indices` or `BallTree.get_arrays()[1]`.
+        `cKDTree.indices`.
     n_group : int
         Number of groups, in [1, len(tree_order)] (or 1, if empty).
 

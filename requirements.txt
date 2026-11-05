@@ -10,8 +10,6 @@ click==8.5.0
     # via
     #   black
     #   pip-tools
-cloudpickle==3.1.2
-    # via joblib
 colorama==0.4.6 ; os_name == 'nt' or sys_platform == 'win32'
     # via
     #   build
@@ -29,28 +27,21 @@ iniconfig==2.3.1
     # via pytest
 isort==5.12.0
     # via joinem (pyproject.toml)
-joblib==1.6.0
-    # via scikit-learn
 lazy-loader==0.6
     # via joinem (pyproject.toml)
 mypy-extensions==1.2.0
     # via black
-narwhals==2.28.0 ; python_full_version >= '3.11'
-    # via scikit-learn
 numpy==2.2.6 ; python_full_version < '3.11'
     # via
     #   joinem (pyproject.toml)
-    #   scikit-learn
     #   scipy
 numpy==2.4.6 ; python_full_version == '3.11.*'
     # via
     #   joinem (pyproject.toml)
-    #   scikit-learn
     #   scipy
 numpy==2.5.4 ; python_full_version >= '3.12'
     # via
     #   joinem (pyproject.toml)
-    #   scikit-learn
     #   scipy
 packaging==26.3
     # via
@@ -84,26 +75,14 @@ pytest==8.3.3
     # via joinem (pyproject.toml)
 ruff==0.1.11
     # via joinem (pyproject.toml)
-scikit-learn==1.7.2 ; python_full_version < '3.11'
-    # via joinem (pyproject.toml)
-scikit-learn==1.9.1 ; python_full_version >= '3.11'
-    # via joinem (pyproject.toml)
 scipy==1.15.3 ; python_full_version < '3.11'
-    # via
-    #   joinem (pyproject.toml)
-    #   scikit-learn
+    # via joinem (pyproject.toml)
 scipy==1.17.1 ; python_full_version == '3.11.*'
-    # via
-    #   joinem (pyproject.toml)
-    #   scikit-learn
+    # via joinem (pyproject.toml)
 scipy==1.18.1 ; python_full_version >= '3.12'
-    # via
-    #   joinem (pyproject.toml)
-    #   scikit-learn
+    # via joinem (pyproject.toml)
 setuptools==84.2.1
     # via pip-tools
-threadpoolctl==3.8.0
-    # via scikit-learn
 tomli==2.5.0 ; python_full_version < '3.11'
     # via
     #   black

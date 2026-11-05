@@ -27,7 +27,6 @@ dependencies = [
   "lazy_loader>=0.4",
   "numpy",
   "polars>=1.33.0",
-  "scikit-learn",
   "scipy",
   "tqdm",
 ]
