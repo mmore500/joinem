@@ -6,15 +6,17 @@ import numpy as np
 import polars as pl
 from sklearn.neighbors import BallTree
 
-from ._impl import label_tree_order, tree_group_id
+from ._impl import tree_group_label_tree_order, tree_group_make_id_expr
 
 
 def _label_rows(
     X: np.ndarray, n_group: int, balltree_kwargs: typing.Mapping
 ) -> np.ndarray:
+    # tunable defaults, not requirements: group counts and sizes are exact
+    # for any tree params, but smaller leaves give tighter group boundaries
     kwargs = {"leaf_size": 1, **balltree_kwargs}
     __, tree_order, __, __ = BallTree(X, **kwargs).get_arrays()
-    return label_tree_order(tree_order, n_group)
+    return tree_group_label_tree_order(tree_order, n_group)
 
 
 def balltree_group_id(
@@ -76,7 +78,7 @@ def balltree_group_id(
 
     >>> SampleOp(2, stratify=balltree_group_id(["x", "y"], n_group=100))
     """
-    return tree_group_id(
+    return tree_group_make_id_expr(
         on_dims,
         n_group=n_group,
         label_rows=functools.partial(

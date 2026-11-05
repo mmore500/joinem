@@ -33,6 +33,7 @@ jobs:
     - name: Run smoke tests
       run: ./tests/test_smoke.sh
 
+  # adapted from https://github.com/mmore500/hstrat/blob/e664e7ab3e8ea7aed0bbdd9ac7c6190bd6c83015/.github/workflows/ci.yaml#L179
   unit-test:
     runs-on: ubuntu-latest
     strategy:

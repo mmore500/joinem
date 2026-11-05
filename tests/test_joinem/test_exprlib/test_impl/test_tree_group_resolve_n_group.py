@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from joinem.exprlib._impl import resolve_n_group
+from joinem.exprlib._impl import tree_group_resolve_n_group
 
 
 @pytest.mark.parametrize(
@@ -20,6 +20,6 @@ from joinem.exprlib._impl import resolve_n_group
     ],
 )
 def test_resolve_n_group(n_group, n_row: int, expected: int):
-    res = resolve_n_group(n_group, n_row)
+    res = tree_group_resolve_n_group(n_group, n_row)
     assert res == expected
     assert isinstance(res, int)

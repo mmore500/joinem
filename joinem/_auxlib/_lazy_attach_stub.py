@@ -5,6 +5,7 @@ import lazy_loader
 from ._GetAttrLaunderShim import GetAttrLaunderShim
 
 
+# adapted from https://github.com/mmore500/hstrat/blob/e664e7ab3e8ea7aed0bbdd9ac7c6190bd6c83015/hstrat/_auxiliary_lib/_lazy_attach_stub.py#L8
 def lazy_attach_stub(
     module_name: str,
     module_path: str,
@@ -38,8 +39,8 @@ def lazy_attach_stub(
 
     Notes
     -----
-    Adapted from mmore500/hstrat. See also the Scientific Python lazy
-    loading spec, https://scientific-python.org/specs/spec-0001/.
+    See the Scientific Python lazy loading spec,
+    https://scientific-python.org/specs/spec-0001/.
     """
     getattr__, dir__, all__ = lazy_loader.attach_stub(module_name, module_path)
     wrapped_getattr = GetAttrLaunderShim(

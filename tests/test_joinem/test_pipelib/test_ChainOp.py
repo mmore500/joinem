@@ -20,12 +20,14 @@ def df() -> pl.DataFrame:
     return pl.DataFrame({"v": range(10)})
 
 
+# adapted from https://github.com/mmore500/phyloframe/blob/306926639a012eb65db8ec8c123dda9568f519b7/tests/test_phyloframe/test_legacy/test_alifestd_pipe_unary_ops_polars.py#L20
 @_apply_params
 def test_ChainOp_no_ops(df: pl.DataFrame, apply: typing.Callable):
     frame = apply(df)
     assert frame.pipe(ChainOp()) is frame
 
 
+# adapted from https://github.com/mmore500/phyloframe/blob/306926639a012eb65db8ec8c123dda9568f519b7/tests/test_phyloframe/test_legacy/test_alifestd_pipe_unary_ops_polars.py#L64
 @_apply_params
 def test_ChainOp_multiple_ops(df: pl.DataFrame, apply: typing.Callable):
     op = ChainOp(
@@ -39,6 +41,7 @@ def test_ChainOp_multiple_ops(df: pl.DataFrame, apply: typing.Callable):
     assert (collected["col_b"] == 2).all()
 
 
+# adapted from https://github.com/mmore500/phyloframe/blob/306926639a012eb65db8ec8c123dda9568f519b7/tests/test_phyloframe/test_legacy/test_alifestd_pipe_unary_ops_polars.py#L81
 def test_ChainOp_order(df: pl.DataFrame):
     log = []
 

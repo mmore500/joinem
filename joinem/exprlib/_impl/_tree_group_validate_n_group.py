@@ -2,7 +2,7 @@ import numbers
 import typing
 
 
-def validate_n_group(n_group: typing.Union[int, float]) -> None:
+def tree_group_validate_n_group(n_group: typing.Union[int, float]) -> None:
     """Raise ValueError unless `n_group` is a positive int or a float
     fraction in (0, 1]."""
     if isinstance(n_group, bool) or not isinstance(n_group, numbers.Real):

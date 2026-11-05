@@ -3,11 +3,11 @@ import typing
 import numpy as np
 import polars as pl
 
-from ._resolve_n_group import resolve_n_group
-from ._validate_n_group import validate_n_group
+from ._tree_group_resolve_n_group import tree_group_resolve_n_group
+from ._tree_group_validate_n_group import tree_group_validate_n_group
 
 
-def tree_group_id(
+def tree_group_make_id_expr(
     on_dims: typing.Sequence[typing.Union[pl.Expr, str]],
     *,
     n_group: typing.Union[int, float],
@@ -26,7 +26,7 @@ def tree_group_id(
         raise ValueError("on_dims must contain at least one dimension")
     if not all(isinstance(dim, (str, pl.Expr)) for dim in on_dims):
         raise ValueError(f"on_dims must be str or pl.Expr, got {on_dims!r}")
-    validate_n_group(n_group)
+    tree_group_validate_n_group(n_group)
 
     dims = [
         (pl.col(dim) if isinstance(dim, str) else dim).alias(
@@ -44,7 +44,7 @@ def tree_group_id(
         result = np.zeros(len(coords), dtype=np.uint64)
         if len(X):
             result[~invalid.to_numpy()] = label_rows(
-                X, resolve_n_group(n_group, len(X))
+                X, tree_group_resolve_n_group(n_group, len(X))
             )
         return pl.Series(name, result, dtype=pl.UInt64).set(invalid, None)
 

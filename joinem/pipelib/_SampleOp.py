@@ -92,7 +92,7 @@ def SampleOp(
 
     tmp_name = "__joinem_sampled__"
 
-    def sample_op(
+    def do_sample(
         df: typing.Union[pl.DataFrame, pl.LazyFrame],
     ) -> pl.LazyFrame:
         lf = df.lazy()
@@ -109,4 +109,4 @@ def SampleOp(
             sampled = sampled.over(*stratify, mapping_strategy="explode")
         return lf.select(sampled.alias(tmp_name)).unnest(tmp_name)
 
-    return sample_op
+    return do_sample

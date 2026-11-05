@@ -1,6 +1,7 @@
 import typing
 
 
+# adapted from https://github.com/mmore500/hstrat/blob/e664e7ab3e8ea7aed0bbdd9ac7c6190bd6c83015/hstrat/_auxiliary_lib/_GetAttrLaunderShim.py#L4
 class GetAttrLaunderShim:
     """A functor shim to launder the __module__ attribute of an object to a
     specified module name. This is used to hide implementation details in the

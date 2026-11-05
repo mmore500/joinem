@@ -4,6 +4,7 @@ import typing
 import polars as pl
 
 
+# adapted from https://github.com/mmore500/phyloframe/blob/306926639a012eb65db8ec8c123dda9568f519b7/phyloframe/legacy/_alifestd_pipe_unary_ops_polars.py#L20
 def ChainOp(
     *ops: typing.Callable[
         [typing.Union[pl.DataFrame, pl.LazyFrame]],
@@ -39,7 +40,7 @@ def ChainOp(
         if not callable(op):
             raise ValueError(f"op {i} is not callable, got {op!r}")
 
-    def chain_op(
+    def do_chain(
         df: typing.Union[pl.DataFrame, pl.LazyFrame],
     ) -> typing.Union[pl.DataFrame, pl.LazyFrame]:
         for i, op in enumerate(progress_wrap(ops)):
@@ -50,4 +51,4 @@ def ChainOp(
         logging.info("- ChainOp: all ops applied")
         return df
 
-    return chain_op
+    return do_chain
