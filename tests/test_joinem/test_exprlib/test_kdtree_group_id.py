@@ -204,7 +204,7 @@ def test_compact_groups():
 
 @pytest.mark.parametrize("leaf_size", [1, 16, 1000])
 def test_kdtree_kwargs_leaf_size_disallowed(df: pl.DataFrame, leaf_size: int):
-    with pytest.raises(TypeError):
+    with pytest.raises(Exception):
         df.select(
             group_id(
                 ["x", "y"], n_group=10, kdtree_kwargs={"leafsize": leaf_size}

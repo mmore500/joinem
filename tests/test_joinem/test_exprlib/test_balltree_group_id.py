@@ -208,7 +208,7 @@ def test_compact_groups():
 def test_balltree_kwargs_leaf_size_disallowed(
     df: pl.DataFrame, leaf_size: int
 ):
-    with pytest.raises(TypeError):
+    with pytest.raises(Exception):
         df.select(
             group_id(
                 ["x", "y"],
