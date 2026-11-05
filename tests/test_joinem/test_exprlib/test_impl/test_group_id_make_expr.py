@@ -2,7 +2,7 @@ import numpy as np
 import polars as pl
 import pytest
 
-from joinem.exprlib._impl import tree_group_make_id_expr
+from joinem.exprlib._impl import group_id_make_expr
 
 
 def _label_rows(X: np.ndarray, n_group: int) -> np.ndarray:
@@ -10,10 +10,10 @@ def _label_rows(X: np.ndarray, n_group: int) -> np.ndarray:
     return np.argsort(np.argsort(X[:, 0])) * n_group // len(X)
 
 
-def test_tree_group_make_id_expr():
+def test_group_id_make_expr():
     df = pl.DataFrame({"x": [3.0, 1.0, 2.0, 0.0]})
     res = df.select(
-        tree_group_make_id_expr(
+        group_id_make_expr(
             ["x"], n_group=2, label_rows=_label_rows, name="gid"
         ),
     ).to_series()
@@ -22,7 +22,7 @@ def test_tree_group_make_id_expr():
     assert res.to_list() == [1, 0, 1, 0]
 
 
-def test_tree_group_make_id_expr_passes_valid_rows_only():
+def test_group_id_make_expr_passes_valid_rows_only():
     seen = []
 
     def label_rows(X: np.ndarray, n_group: int) -> np.ndarray:
@@ -32,7 +32,7 @@ def test_tree_group_make_id_expr_passes_valid_rows_only():
     df = pl.DataFrame({"x": [1.0, None, float("nan"), 4.0], "y": [1, 2, 3, 4]})
     with pytest.warns(UserWarning):  # n_group=5 exceeds 2 valid rows
         res = df.select(
-            tree_group_make_id_expr(
+            group_id_make_expr(
                 ["x", "y"], n_group=5, label_rows=label_rows, name="gid"
             ),
         ).to_series()
@@ -40,10 +40,10 @@ def test_tree_group_make_id_expr_passes_valid_rows_only():
     assert res.to_list() == [0, None, None, 0]
 
 
-def test_tree_group_make_id_expr_same_named_dims():
+def test_group_id_make_expr_same_named_dims():
     df = pl.DataFrame({"x": [3.0, 1.0, 2.0, 0.0]})
     res = df.select(
-        tree_group_make_id_expr(
+        group_id_make_expr(
             [pl.col("x"), pl.col("x") * 2],
             n_group=2,
             label_rows=_label_rows,
@@ -54,15 +54,13 @@ def test_tree_group_make_id_expr_same_named_dims():
 
 
 @pytest.mark.parametrize("on_dims", [[], [1], [None], ["x", 2.0]])
-def test_tree_group_make_id_expr_invalid_dims(on_dims):
+def test_group_id_make_expr_invalid_dims(on_dims):
     with pytest.raises(ValueError):
-        tree_group_make_id_expr(
+        group_id_make_expr(
             on_dims, n_group=2, label_rows=_label_rows, name="g"
         )
 
 
-def test_tree_group_make_id_expr_invalid_n_group():
+def test_group_id_make_expr_invalid_n_group():
     with pytest.raises(ValueError):
-        tree_group_make_id_expr(
-            ["x"], n_group=0, label_rows=_label_rows, name="g"
-        )
+        group_id_make_expr(["x"], n_group=0, label_rows=_label_rows, name="g")

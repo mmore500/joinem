@@ -7,7 +7,7 @@ import numpy as np
 import polars as pl
 from scipy.cluster.vq import kmeans2
 
-from ._impl import tree_group_make_id_expr
+from ._impl import group_id_make_expr
 
 
 def _label_rows(
@@ -93,7 +93,7 @@ def group_id_kmeans(
 
     >>> SampleOp(2, stratify=group_id_kmeans(["x", "y"], n_group=100, seed=1))
     """
-    return tree_group_make_id_expr(
+    return group_id_make_expr(
         on_dims,
         n_group=n_group,
         label_rows=functools.partial(

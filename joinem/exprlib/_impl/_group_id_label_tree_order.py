@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def tree_group_label_tree_order(
+def group_id_label_tree_order(
     tree_order: np.ndarray, n_group: int
 ) -> np.ndarray:
     """Assign rows to `n_group` equal-sized (within one) groups, by cutting
