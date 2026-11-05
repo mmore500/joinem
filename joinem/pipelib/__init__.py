@@ -1,10 +1,6 @@
-"""Factories for frame-to-frame callables, suitable for `df.pipe(...)`.
+"""Factories for frame-to-frame callables, suitable for `df.pipe(...)`."""
 
-Available within joinem `--ipipe` and `--opipe` expressions as `jepl`.
-"""
+from .._auxlib import lazy_attach_stub
 
-from ._PipeUnaryOpsOp import PipeUnaryOpsOp
-from ._SampleOp import SampleOp
-from ._pipe_unary_ops import pipe_unary_ops
-
-__all__ = ["pipe_unary_ops", "PipeUnaryOpsOp", "SampleOp"]
+__getattr__, __dir__, __all__ = lazy_attach_stub(__name__, __file__)
+del lazy_attach_stub

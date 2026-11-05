@@ -177,17 +177,17 @@ find assets/x*.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
 # jepl (joinem.pipelib) and jexl (joinem.exprlib) in eval'ed expressions
 python3 -c 'import polars as pl; pl.DataFrame({"x": range(100), "y": [v % 7 for v in range(100)]}).write_csv("out/xy_grid.csv")'
 find out/xy_grid.csv | python3 -m joinem out/jepl_kdtree.csv \
-  --opipe 'jepl.SampleOp(1, stratify=jexl.kdtree_group_id([jexl.standard_scaled("x"), jexl.standard_scaled("y")], 10), seed=1)'
+  --opipe 'jepl.SampleOp(1, stratify=jexl.kdtree_group_id([jexl.standard_scaled("x"), jexl.standard_scaled("y")], n_group=10), seed=1)'
 python3 -c 'import polars as pl; d = pl.read_csv("out/jepl_kdtree.csv"); assert d.height == 10 and d.columns == ["x", "y"], d'
 find out/xy_grid.csv | python3 -m joinem out/jepl_balltree.csv \
-  --ipipe 'jepl.SampleOp(fraction=0.5, stratify=jexl.balltree_group_id(["x", "y"], 4), seed=1)'
+  --ipipe 'jepl.SampleOp(fraction=0.5, stratify=jexl.balltree_group_id(["x", "y"], n_group=4), seed=1)'
 python3 -c 'import polars as pl; d = pl.read_csv("out/jepl_balltree.csv"); assert d.height == 48, d  # 4 groups of 25 rows, floor(25 / 2) each'
 find out/xy_grid.csv | python3 -m joinem out/jexl_with_column.csv \
   --with-column 'jexl.minmax_scaled("x").alias("x01")' \
-  --with-column 'jexl.kdtree_group_id(["x", "y"], 5)'
+  --with-column 'jexl.kdtree_group_id(["x", "y"], n_group=5)'
 python3 -c 'import polars as pl; d = pl.read_csv("out/jexl_with_column.csv"); assert d["x01"].min() == 0 and d["kdtree_group_id"].n_unique() == 5, d'
 find out/xy_grid.csv | python3 -m joinem out/jexl_sample_stratify.csv \
-  --with-column 'jexl.balltree_group_id(["x", "y"], 5)' \
+  --with-column 'jexl.balltree_group_id(["x", "y"], n_group=5)' \
   --sample 2 --sample-stratify balltree_group_id --seed 1
 python3 -c 'import polars as pl; d = pl.read_csv("out/jexl_sample_stratify.csv"); assert d.height == 10, d'
 
@@ -195,7 +195,7 @@ python3 -c 'import polars as pl; d = pl.read_csv("out/jexl_sample_stratify.csv")
 # x via jexl.minmax_scaled, skewed y via quantile (rank) normalization
 python3 -c 'import polars as pl; pl.DataFrame({"x": [v % 37 for v in range(500)], "y": [v ** 3 for v in range(500)]}).write_csv("out/skewed.csv")'
 find out/skewed.csv | python3 -m joinem out/jepl_kdtree_quantile.csv \
-  --opipe 'jepl.SampleOp(2, stratify=jexl.kdtree_group_id([jexl.minmax_scaled("x"), (pl.col("y").rank() / pl.len()).alias("y_quantile")], 20), seed=1)'
+  --opipe 'jepl.SampleOp(2, stratify=jexl.kdtree_group_id([jexl.minmax_scaled("x"), (pl.col("y").rank() / pl.len()).alias("y_quantile")], n_group=20), seed=1)'
 python3 - <<'PYEOF'
 import polars as pl
 from joinem import exprlib as jexl
@@ -205,7 +205,8 @@ d = pl.read_csv("out/jepl_kdtree_quantile.csv")
 assert d.columns == ["x", "y"] and d.height == 40 and d.is_unique().all(), d
 groups = src.with_columns(
     jexl.kdtree_group_id(
-        [jexl.minmax_scaled("x"), (pl.col("y").rank() / pl.len())], 20
+        [jexl.minmax_scaled("x"), (pl.col("y").rank() / pl.len())],
+        n_group=20,
     ),
     (pl.col("y").rank() / pl.len()).alias("y_quantile"),
 ).join(d, on=["x", "y"])
@@ -216,7 +217,7 @@ assert groups.height == 40 and counts.len() == 20 and (counts == 2).all()
 assert groups["y_quantile"].min() < 0.1 < 0.9 < groups["y_quantile"].max()
 PYEOF
 
-# --opipe compound op via jepl.PipeUnaryOpsOp
-find out/xy_grid.csv | python3 -m joinem out/jepl_pipe_unary_ops.csv \
-  --opipe 'jepl.PipeUnaryOpsOp(lambda df: df.with_columns(jexl.kdtree_group_id(["x", "y"], 10)), jepl.SampleOp(1, stratify="kdtree_group_id", seed=1), lambda df: df.sort("kdtree_group_id"))'
-python3 -c 'import polars as pl; d = pl.read_csv("out/jepl_pipe_unary_ops.csv"); assert d["kdtree_group_id"].to_list() == list(range(10)), d'
+# --opipe compound op via jepl.ChainOp
+find out/xy_grid.csv | python3 -m joinem out/jepl_chain_op.csv \
+  --opipe 'jepl.ChainOp(lambda df: df.with_columns(jexl.kdtree_group_id(["x", "y"], n_group=10)), jepl.SampleOp(1, stratify="kdtree_group_id", seed=1), lambda df: df.sort("kdtree_group_id"))'
+python3 -c 'import polars as pl; d = pl.read_csv("out/jepl_chain_op.csv"); assert d["kdtree_group_id"].to_list() == list(range(10)), d'

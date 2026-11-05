@@ -20,39 +20,33 @@ def df() -> pl.DataFrame:
     )
 
 
-@pytest.mark.parametrize("n_group", [1, 2, 7, 64, 100, 500])
+@pytest.mark.parametrize("n_group", [1, 2, 7, 64, 100, 500, 999, 1000])
 @pytest.mark.parametrize("on_dims", [["x"], ["x", "y"], ["x", "y", "z"]])
 def test_group_count(df: pl.DataFrame, n_group: int, on_dims: list):
-    res = df.select(group_id(on_dims, n_group)).to_series()
+    res = df.select(group_id(on_dims, n_group=n_group)).to_series()
     assert res.name == NAME
-    assert res.dtype == pl.UInt32
+    assert res.dtype == pl.UInt64
     assert res.null_count() == 0
-    assert res.n_unique() == n_group
     assert sorted(res.unique()) == list(range(n_group))
 
 
 @pytest.mark.parametrize("fraction", [0.001, 0.01, 0.1, 0.5])
 def test_group_count_fraction(df: pl.DataFrame, fraction: float):
-    res = df.select(group_id(["x", "y"], fraction)).to_series()
+    res = df.select(group_id(["x", "y"], n_group=fraction)).to_series()
     assert res.n_unique() == max(1, int(fraction * len(df)))
 
 
-@pytest.mark.parametrize("n_group", [1000, 5000, 1.0])
-def test_group_count_saturated(df: pl.DataFrame, n_group):
-    res = df.select(group_id(["x", "y"], n_group)).to_series()
+@pytest.mark.parametrize("n_group", [5000, 1.0])
+def test_group_count_clipped(df: pl.DataFrame, n_group):
+    res = df.select(group_id(["x", "y"], n_group=n_group)).to_series()
     assert res.n_unique() == len(df)
 
 
-def test_group_count_near_saturated(df: pl.DataFrame):
-    res = df.select(group_id(["x", "y"], 999)).to_series()
-    assert 1 < res.n_unique() <= 999
-
-
-@pytest.mark.parametrize("n_group", [2, 16, 100])
+@pytest.mark.parametrize("n_group", [2, 7, 16, 100])
 def test_group_sizes_balanced(df: pl.DataFrame, n_group: int):
-    counts = df.select(group_id(["x", "z"], n_group)).to_series()
-    sizes = counts.value_counts()["count"]
-    assert sizes.max() <= 2 * sizes.min() + 1
+    res = df.select(group_id(["x", "z"], n_group=n_group)).to_series()
+    sizes = res.value_counts()["count"]
+    assert sizes.max() - sizes.min() <= 1
 
 
 def test_spatially_compact():
@@ -65,35 +59,47 @@ def test_spatially_compact():
             "cluster": cluster,
         },
     )
-    res = df.with_columns(group_id(["x", "y"], 2))
+    res = df.with_columns(group_id(["x", "y"], n_group=2))
     assert res.select(pl.col("cluster", NAME).n_unique()).row(0) == (2, 2)
     assert res.select(pl.struct("cluster", NAME).n_unique()).item() == 2
 
 
+def test_spatially_compact_1d():
+    df = pl.DataFrame({"x": np.random.permutation(100)})
+    res = df.with_columns(group_id(["x"], n_group=10))
+    # each group is a contiguous run of x values
+    assert res.sort("x")[NAME].rle_id().n_unique() == 10
+
+
 def test_deterministic(df: pl.DataFrame):
-    first = df.select(group_id(["x", "y"], 10))
-    second = df.select(group_id(["x", "y"], 10))
+    first = df.select(group_id(["x", "y"], n_group=10))
+    second = df.select(group_id(["x", "y"], n_group=10))
     assert first.equals(second)
+
+
+def test_int_dims():
+    df = pl.DataFrame({"x": range(100), "y": [v % 7 for v in range(100)]})
+    res = df.select(group_id(["x", "y"], n_group=10)).to_series()
+    assert res.n_unique() == 10
 
 
 def test_expr_dims(df: pl.DataFrame):
     res = df.select(
-        group_id([standard_scaled("x"), standard_scaled("x") * 2], 10),
+        group_id([standard_scaled("x"), standard_scaled("x") * 2], n_group=10),
     ).to_series()
     assert res.n_unique() == 10
 
 
 @pytest.mark.parametrize("dim", ["x", pl.col("x")])
 def test_scalar_dim(df: pl.DataFrame, dim):
-    assert df.select(group_id(dim, 4)).to_series().n_unique() == 4
+    assert df.select(group_id(dim, n_group=4)).to_series().n_unique() == 4
 
 
-def test_matches_1d_quantiles():
-    df = pl.DataFrame({"x": np.random.permutation(100).astype(float)})
-    res = df.with_columns(group_id(["x"], 2))
-    lo = res.filter(pl.col("x") < 50)[NAME].unique()
-    hi = res.filter(pl.col("x") >= 50)[NAME].unique()
-    assert len(lo) == len(hi) == 1 and lo[0] != hi[0]
+def test_duplicate_points():
+    df = pl.DataFrame({"x": [1.0] * 10 + [2.0] * 10})
+    res = df.with_columns(group_id(["x"], n_group=4))
+    assert res[NAME].n_unique() == 4
+    assert res.select(pl.col("x").n_unique().over(NAME).max()).item() == 1
 
 
 def test_nulls():
@@ -103,32 +109,45 @@ def test_nulls():
             "y": [0.0, 0.0, 0.0, 0.0, None, 0.0],
         },
     )
-    res = df.select(group_id(["x", "y"], 2)).to_series()
+    res = df.select(group_id(["x", "y"], n_group=2)).to_series()
     assert res.is_null().to_list() == [False, True, False, True, True, False]
     assert res.drop_nulls().n_unique() == 2
 
 
+def test_int_nulls():
+    df = pl.DataFrame({"x": [1, None, 3, 2]})
+    res = df.select(group_id(["x"], n_group=3)).to_series()
+    assert res.to_list()[1] is None
+    assert res.drop_nulls().n_unique() == 3
+
+
 def test_all_null():
     df = pl.DataFrame({"x": [None, None]}, schema={"x": pl.Float64})
-    assert df.select(group_id(["x"], 2)).to_series().null_count() == 2
+    res = df.select(group_id(["x"], n_group=2)).to_series()
+    assert res.null_count() == 2
 
 
 def test_empty():
     df = pl.DataFrame({"x": []}, schema={"x": pl.Float64})
-    res = df.select(group_id(["x"], 2)).to_series()
-    assert res.len() == 0 and res.dtype == pl.UInt32
+    res = df.select(group_id(["x"], n_group=2)).to_series()
+    assert res.len() == 0 and res.dtype == pl.UInt64
 
 
 def test_over(df: pl.DataFrame):
-    res = df.with_columns(group_id(["x", "y"], 5).over("g"))
+    res = df.with_columns(group_id(["x", "y"], n_group=5).over("g"))
     per_g = res.group_by("g").agg(pl.col(NAME).n_unique())[NAME]
     assert per_g.to_list() == [5] * 3
 
 
 def test_lazy(df: pl.DataFrame):
-    expected = df.select(group_id(["x", "y"], 10))
-    actual = df.lazy().select(group_id(["x", "y"], 10)).collect()
+    expected = df.select(group_id(["x", "y"], n_group=10))
+    actual = df.lazy().select(group_id(["x", "y"], n_group=10)).collect()
     assert expected.equals(actual)
+
+
+def test_n_group_keyword_only():
+    with pytest.raises(TypeError):
+        group_id(["x"], 2)
 
 
 @pytest.mark.parametrize(
@@ -148,25 +167,22 @@ def test_lazy(df: pl.DataFrame):
 )
 def test_invalid(on_dims, n_group):
     with pytest.raises(ValueError):
-        group_id(on_dims, n_group)
+        group_id(on_dims, n_group=n_group)
 
 
-def test_balltree_kwargs(df: pl.DataFrame):
-    # chebyshev metric changes tree construction, but not group count
+@pytest.mark.parametrize(
+    "balltree_kwargs",
+    [{"metric": "chebyshev"}, {"leaf_size": 40}, {"leaf_size": 1000}],
+)
+def test_balltree_kwargs(df: pl.DataFrame, balltree_kwargs: dict):
     res = df.select(
-        group_id(["x", "y"], 10, balltree_kwargs={"metric": "chebyshev"}),
+        group_id(["x", "y"], n_group=10, balltree_kwargs=balltree_kwargs),
     ).to_series()
     assert res.n_unique() == 10
 
 
-def test_balltree_kwargs_leaf_size(df: pl.DataFrame):
-    # huge leaves leave nothing to split
-    res = df.select(
-        group_id(["x", "y"], 10, balltree_kwargs={"leaf_size": len(df)}),
-    ).to_series()
-    assert res.n_unique() == 1
-
-
 def test_balltree_kwargs_invalid(df: pl.DataFrame):
     with pytest.raises(Exception):
-        df.select(group_id(["x"], 10, balltree_kwargs={"metric": "nope"}))
+        df.select(
+            group_id(["x"], n_group=10, balltree_kwargs={"metric": "nope"}),
+        )

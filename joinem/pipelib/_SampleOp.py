@@ -3,9 +3,6 @@ import typing
 
 import polars as pl
 
-_Frame = typing.TypeVar("_Frame", pl.DataFrame, pl.LazyFrame)
-_IntoExpr = typing.Union[pl.Expr, str]
-
 
 def SampleOp(
     n: typing.Union[int, pl.Expr, None] = None,
@@ -14,13 +11,15 @@ def SampleOp(
     with_replacement: bool = False,
     shuffle: bool = False,
     seed: typing.Optional[int] = None,
-    stratify: typing.Union[_IntoExpr, typing.Iterable[_IntoExpr], None] = None,
-) -> typing.Callable[[_Frame], _Frame]:
+    stratify: typing.Union[
+        pl.Expr, str, typing.Iterable[typing.Union[pl.Expr, str]], None
+    ] = None,
+) -> typing.Callable[[typing.Union[pl.DataFrame, pl.LazyFrame]], pl.LazyFrame]:
     """Create a callable that samples rows from a frame.
 
     Sampling parameters mirror `polars.DataFrame.sample`. Returned callable
-    accepts a `pl.DataFrame` or `pl.LazyFrame` and returns the same type,
-    so is suitable for `df.pipe(...)`.
+    accepts a `pl.DataFrame` or `pl.LazyFrame` and returns a
+    `pl.LazyFrame`, so is suitable for `df.pipe(...)`.
 
     Parameters
     ----------
@@ -93,7 +92,9 @@ def SampleOp(
 
     tmp_name = "__joinem_sampled__"
 
-    def sample_op(df: _Frame) -> _Frame:
+    def sample_op(
+        df: typing.Union[pl.DataFrame, pl.LazyFrame],
+    ) -> pl.LazyFrame:
         lf = df.lazy()
         sampled = pl.struct(pl.all()).sample(
             **({"n": n} if fraction is None else {"fraction": fraction}),
@@ -106,7 +107,6 @@ def SampleOp(
             lf = lf.collect().sample(fraction=1, shuffle=True, seed=seed)
             lf = lf.lazy()
             sampled = sampled.over(*stratify, mapping_strategy="explode")
-        result = lf.select(sampled.alias(tmp_name)).unnest(tmp_name)
-        return result.collect() if isinstance(df, pl.DataFrame) else result
+        return lf.select(sampled.alias(tmp_name)).unnest(tmp_name)
 
     return sample_op
