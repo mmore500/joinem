@@ -12,10 +12,12 @@ from ._impl import tree_group_label_tree_order, tree_group_make_id_expr
 def _label_rows(
     X: np.ndarray, n_group: int, kdtree_kwargs: typing.Mapping
 ) -> np.ndarray:
-    # tunable defaults, not requirements: group counts and sizes are exact
-    # for any tree params, but smaller leaves give tighter group boundaries
-    kwargs = {"leafsize": 1, "balanced_tree": True, **kdtree_kwargs}
-    return tree_group_label_tree_order(cKDTree(X, **kwargs).indices, n_group)
+    # leafsize=1 is required: rows within a leaf are in arbitrary order, so
+    # leaves larger than groups make groups spatially arbitrary; passing
+    # leafsize raises TypeError (multiple values for keyword argument)
+    kwargs = {"balanced_tree": True, **kdtree_kwargs}  # tunable default
+    tree = cKDTree(X, leafsize=1, **kwargs)
+    return tree_group_label_tree_order(tree.indices, n_group)
 
 
 def kdtree_group_id(
@@ -42,7 +44,8 @@ def kdtree_group_id(
         (0, 1]). Clipped to the number of non-null rows.
     kdtree_kwargs : mapping, optional
         Additional keyword arguments for `scipy.spatial.cKDTree`. Overrides
-        defaults `leafsize=1` and `balanced_tree=True`.
+        default `balanced_tree=True`. Passing `leafsize` raises TypeError,
+        as `leafsize=1` is required for spatially compact groups.
 
     Returns
     -------

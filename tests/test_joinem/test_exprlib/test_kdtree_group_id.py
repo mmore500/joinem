@@ -172,7 +172,7 @@ def test_invalid(on_dims, n_group):
 
 @pytest.mark.parametrize(
     "kdtree_kwargs",
-    [{"balanced_tree": False}, {"leafsize": 16}, {"leafsize": 1000}],
+    [{"balanced_tree": False}, {"balanced_tree": True}, {"copy_data": True}],
 )
 def test_kdtree_kwargs(df: pl.DataFrame, kdtree_kwargs: dict):
     res = df.select(
@@ -184,3 +184,29 @@ def test_kdtree_kwargs(df: pl.DataFrame, kdtree_kwargs: dict):
 def test_kdtree_kwargs_invalid(df: pl.DataFrame):
     with pytest.raises(Exception):
         df.select(group_id(["x"], n_group=10, kdtree_kwargs={"nope": 1}))
+
+
+def test_compact_groups():
+    # groups are much tighter than random groups of the same size
+    df = pl.DataFrame({"x": np.random.rand(1000), "y": np.random.rand(1000)})
+    area = (
+        df.with_columns(group_id(["x", "y"], n_group=10))
+        .group_by(NAME)
+        .agg(
+            (pl.col("x").max() - pl.col("x").min())
+            * (pl.col("y").max() - pl.col("y").min()),
+        )["x"]
+    )
+    # random groups of 100 uniform points have bounding box area ~0.95
+    assert area.max() < 0.5
+    assert area.mean() < 0.3
+
+
+@pytest.mark.parametrize("leaf_size", [1, 16, 1000])
+def test_kdtree_kwargs_leaf_size_disallowed(df: pl.DataFrame, leaf_size: int):
+    with pytest.raises(TypeError):
+        df.select(
+            group_id(
+                ["x", "y"], n_group=10, kdtree_kwargs={"leafsize": leaf_size}
+            ),
+        )

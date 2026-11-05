@@ -12,10 +12,11 @@ from ._impl import tree_group_label_tree_order, tree_group_make_id_expr
 def _label_rows(
     X: np.ndarray, n_group: int, balltree_kwargs: typing.Mapping
 ) -> np.ndarray:
-    # tunable defaults, not requirements: group counts and sizes are exact
-    # for any tree params, but smaller leaves give tighter group boundaries
-    kwargs = {"leaf_size": 1, **balltree_kwargs}
-    __, tree_order, __, __ = BallTree(X, **kwargs).get_arrays()
+    # leaf_size=1 is required: rows within a leaf are in arbitrary order, so
+    # leaves larger than groups make groups spatially arbitrary; passing
+    # leaf_size raises TypeError (multiple values for keyword argument)
+    tree = BallTree(X, leaf_size=1, **balltree_kwargs)
+    __, tree_order, __, __ = tree.get_arrays()
     return tree_group_label_tree_order(tree_order, n_group)
 
 
@@ -43,7 +44,8 @@ def balltree_group_id(
         (0, 1]). Clipped to the number of non-null rows.
     balltree_kwargs : mapping, optional
         Additional keyword arguments for `sklearn.neighbors.BallTree`, such
-        as `metric`. Overrides default `leaf_size=1`.
+        as `metric`. Passing `leaf_size` raises TypeError, as `leaf_size=1`
+        is required for spatially compact groups.
 
     Returns
     -------
