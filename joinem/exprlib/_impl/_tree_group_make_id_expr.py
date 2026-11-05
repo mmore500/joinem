@@ -28,12 +28,10 @@ def tree_group_make_id_expr(
         raise ValueError(f"on_dims must be str or pl.Expr, got {on_dims!r}")
     tree_group_validate_n_group(n_group)
 
-    dims = [
-        (pl.col(dim) if isinstance(dim, str) else dim).alias(
-            f"_{i}"  # avoid struct field name collisions
-        )
-        for i, dim in enumerate(on_dims)
-    ]
+    # positional field names avoid collisions, e.g., x and x * 2
+    coords_struct = pl.struct(
+        **{f"_{i}": dim for i, dim in enumerate(on_dims)}
+    )
 
     def apply(series: pl.Series) -> pl.Series:
         coords = series.struct.unnest()
@@ -48,6 +46,4 @@ def tree_group_make_id_expr(
             )
         return pl.Series(name, result, dtype=pl.UInt64).set(invalid, None)
 
-    return (
-        pl.struct(dims).map_batches(apply, return_dtype=pl.UInt64).alias(name)
-    )
+    return coords_struct.map_batches(apply, return_dtype=pl.UInt64).alias(name)
