@@ -103,7 +103,7 @@ def SampleOp(
             seed=seed,
         )
         if stratify:
-            # shuffle first so a shared seed picks different rows per group
+            # shuffle first so different row orders picked per group
             lf = lf.collect().sample(fraction=1, shuffle=True, seed=seed)
             lf = lf.lazy()
             sampled = sampled.over(*stratify, mapping_strategy="explode")
