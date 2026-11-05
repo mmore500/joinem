@@ -221,3 +221,8 @@ PYEOF
 find out/xy_grid.csv | python3 -m joinem out/jepl_chain_op.csv \
   --opipe 'jepl.ChainOp(lambda df: df.with_columns(jexl.group_id_kdtree(["x", "y"], n_group=10)), jepl.SampleOp(1, stratify="group_id_kdtree", seed=1), lambda df: df.sort("group_id_kdtree"))'
 python3 -c 'import polars as pl; d = pl.read_csv("out/jepl_chain_op.csv"); assert d["group_id_kdtree"].to_list() == list(range(10)), d'
+
+# --opipe stratified sampling on k-means clusters
+find out/xy_grid.csv | python3 -m joinem out/jepl_kmeans.csv \
+  --opipe 'jepl.SampleOp(1, stratify=jexl.group_id_kmeans([jexl.scaled_minmax("x"), jexl.scaled_minmax("y")], n_group=10, seed=1), seed=1)'
+python3 -c 'import polars as pl; d = pl.read_csv("out/jepl_kmeans.csv"); assert d.height == 10 and d.columns == ["x", "y"], d'

@@ -6,7 +6,7 @@ import numpy as np
 import polars as pl
 from scipy.spatial import cKDTree
 
-from ._impl import tree_group_label_tree_order, tree_group_make_id_expr
+from ._impl import group_id_label_tree_order, group_id_make_expr
 
 
 def _label_rows(
@@ -15,7 +15,7 @@ def _label_rows(
     kwargs = {"balanced_tree": True, **kdtree_kwargs}
     # pinned, not overridable: larger leaves scramble groups spatially
     tree = cKDTree(X, leafsize=1, **kwargs)
-    return tree_group_label_tree_order(tree.indices, n_group)
+    return group_id_label_tree_order(tree.indices, n_group)
 
 
 def group_id_kdtree(
@@ -71,7 +71,7 @@ def group_id_kdtree(
 
     >>> SampleOp(2, stratify=group_id_kdtree(["x", "y"], n_group=100))
     """
-    return tree_group_make_id_expr(
+    return group_id_make_expr(
         on_dims,
         n_group=n_group,
         label_rows=functools.partial(
