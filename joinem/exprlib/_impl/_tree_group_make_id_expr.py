@@ -2,6 +2,7 @@ import typing
 
 import numpy as np
 import polars as pl
+import polars.selectors as cs
 
 from ._tree_group_resolve_n_group import tree_group_resolve_n_group
 from ._tree_group_validate_n_group import tree_group_validate_n_group
@@ -35,9 +36,11 @@ def tree_group_make_id_expr(
 
     def apply(series: pl.Series) -> pl.Series:
         coords = series.struct.unnest()
-        invalid = coords.select(
-            pl.any_horizontal(pl.all().fill_nan(None).is_null()),
-        ).to_series()
+        invalid = (
+            coords.with_columns(cs.float().fill_nan(None))  # NaN as null
+            .select(pl.any_horizontal(pl.all().is_null()))
+            .to_series()
+        )
         X = coords.filter(~invalid).to_numpy()
         result = np.zeros(len(coords), dtype=np.uint64)
         if len(X):

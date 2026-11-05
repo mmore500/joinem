@@ -9,7 +9,7 @@ def SampleOp(
     *,
     fraction: typing.Union[float, pl.Expr, None] = None,
     with_replacement: bool = False,
-    shuffle: bool = False,
+    shuffle: typing.Optional[bool] = None,
     seed: typing.Optional[int] = None,
     stratify: typing.Union[
         pl.Expr, str, typing.Iterable[typing.Union[pl.Expr, str]], None
@@ -32,15 +32,15 @@ def SampleOp(
         Fraction of rows to sample (per stratum, if stratified).
     with_replacement : bool, default False
         Allow rows to be sampled more than once.
-    shuffle : bool, default False
-        Shuffle order of sampled rows.
+    shuffle : bool, optional
+        If True, shuffle sampled rows; if False, preserve their relative
+        order. If None, use polars' default.
     seed : int, optional
         Seed for deterministic behavior.
     stratify : str, pl.Expr, or iterable thereof, optional
         Column name(s) or expression(s) to stratify by; `n`/`fraction`
         applies separately to each distinct value (or combination of
-        values). Strings are interpreted as column names. Stratification
-        collects the frame.
+        values). Strings are interpreted as column names.
 
     Raises
     ------
@@ -98,14 +98,15 @@ def SampleOp(
         lf = df.lazy()
         sampled = pl.struct(pl.all()).sample(
             **({"n": n} if fraction is None else {"fraction": fraction}),
+            **({} if shuffle is None else {"shuffle": shuffle}),
             with_replacement=with_replacement,
-            shuffle=shuffle,
             seed=seed,
         )
         if stratify:
             # shuffle first so different row orders picked per group
-            lf = lf.collect().sample(fraction=1, shuffle=True, seed=seed)
-            lf = lf.lazy()
+            lf = lf.select(
+                pl.struct(pl.all()).shuffle(seed=seed).alias(tmp_name),
+            ).unnest(tmp_name)
             sampled = sampled.over(*stratify, mapping_strategy="explode")
         return lf.select(sampled.alias(tmp_name)).unnest(tmp_name)
 
