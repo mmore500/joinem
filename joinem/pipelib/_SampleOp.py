@@ -104,11 +104,11 @@ def SampleOp(
             lf = lf.select(
                 pl.struct(pl.all())
                 .shuffle(seed=seed)
-                .alias("__joinem_sampled__"),
-            ).unnest("__joinem_sampled__")
+                .alias("__joinem_sampled"),
+            ).unnest("__joinem_sampled")
             sampled = sampled.over(*stratify, mapping_strategy="explode")
-        return lf.select(sampled.alias("__joinem_sampled__")).unnest(
-            "__joinem_sampled__"
+        return lf.select(sampled.alias("__joinem_sampled")).unnest(
+            "__joinem_sampled"
         )
 
     return do_sample
