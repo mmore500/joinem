@@ -12,7 +12,8 @@ from ._impl import tree_group_label_tree_order, tree_group_make_id_expr
 def _label_rows(
     X: np.ndarray, n_group: int, balltree_kwargs: typing.Mapping
 ) -> np.ndarray:
-    tree = BallTree(X, leaf_size=1, **balltree_kwargs)  # leaves are unordered
+    # pinned, not overridable: larger leaves scramble groups spatially
+    tree = BallTree(X, leaf_size=1, **balltree_kwargs)
     __, tree_order, __, __ = tree.get_arrays()
     return tree_group_label_tree_order(tree_order, n_group)
 

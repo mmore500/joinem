@@ -13,7 +13,8 @@ def _label_rows(
     X: np.ndarray, n_group: int, kdtree_kwargs: typing.Mapping
 ) -> np.ndarray:
     kwargs = {"balanced_tree": True, **kdtree_kwargs}
-    tree = cKDTree(X, leafsize=1, **kwargs)  # leaves are unordered
+    # pinned, not overridable: larger leaves scramble groups spatially
+    tree = cKDTree(X, leafsize=1, **kwargs)
     return tree_group_label_tree_order(tree.indices, n_group)
 
 
