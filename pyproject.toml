@@ -24,7 +24,11 @@ classifiers = [
 requires-python = ">=3.9"
 license = {text = "MIT license"}
 dependencies = [
+  "lazy_loader>=0.4",
+  "numpy",
   "polars>=1.33.0",
+  "scikit-learn",
+  "scipy",
   "tqdm",
 ]
 
@@ -49,11 +53,18 @@ dev = [
     "pip-tools==7.3.0",
     "ruff==0.1.11",
 ]
+testing = [
+    "coverage>=7.6.1",
+    "pytest==8.3.3",
+]
 rt64 = ["polars[rt64]"]
 rtcompat = ["polars[rtcompat]"]
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.setuptools.package-data]
+"*" = ["*.pyi"]
 
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests.*"]

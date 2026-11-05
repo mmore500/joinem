@@ -6,6 +6,11 @@ __version__ = "0.17.0"
 __maintainer__ = "Matthew Andres Moreno"
 __email__ = "m.more500@gmail.com"
 
-from ._dataframe_cli import dataframe_cli
+from ._auxlib import lazy_attach_stub
 
-__all__ = ["dataframe_cli"]
+__getattr__, __dir__, __all__ = lazy_attach_stub(
+    __name__,
+    __file__,
+    should_launder=[].__contains__,
+)
+del lazy_attach_stub

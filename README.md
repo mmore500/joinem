@@ -185,10 +185,11 @@ options:
   --sample SAMPLE       Number of rows to include in output, sampled
                         uniformly. Accepts an integer, a float (fraction of
                         rows), or polars expression, with access to polars
-                        as `pl`. Sampling more rows than available raises an
-                        error; to sample up to a maximum, use an expression
-                        such as 'pl.len().clip(upper_bound=100)'. Pass
-                        --seed for deterministic behavior.
+                        as `pl` and joinem.exprlib as `jexl`. Sampling more
+                        rows than available raises an error; to sample up to
+                        a maximum, use an expression such as
+                        'pl.len().clip(upper_bound=100)'. Pass --seed for
+                        deterministic behavior.
   --sample-stratify SAMPLE_STRATIFY
                         Column name to stratify --sample by, so that the
                         sample size applies to each distinct value (or
@@ -207,25 +208,31 @@ options:
                         provide multiple expressions. Example:
                         'pl.Config.set_engine_affinity(engine="streaming")'
   --ipipe IPIPE         Expression evaluating to a callable applied to each
-                        input frame, before concatenation, via `df.pipe(...)`.
-                        Has access to polars as `pl` and the default input
-                        dataframe op as `op`, which is a no-op for joinem
-                        itself but may do work when joinem is the backing CLI
-                        engine for another tool. Default: 'op'. Example:
-                        'lambda df:
+                        input frame, before concatenation, via
+                        `df.pipe(...)`. Has access to polars as `pl`,
+                        joinem.pipelib as `jepl`, joinem.exprlib as `jexl`,
+                        and the default input dataframe op as `op`, which is
+                        a no-op for joinem itself but may do work when
+                        joinem is the backing CLI engine for another tool.
+                        Default: 'op'. Example: 'lambda df:
                         op(df).with_columns(pl.lit(1).alias("one"))'
   --opipe OPIPE         Expression evaluating to a callable applied to the
                         concatenated output frame via `df.pipe(...)`. Has
-                        access to polars as `pl` and the default output
+                        access to polars as `pl`, joinem.pipelib as `jepl`,
+                        joinem.exprlib as `jexl`, and the default output
                         dataframe op as `op`, which is a no-op for joinem
-                        itself but may do work when joinem is the backing CLI
-                        engine for another tool. Default: 'op'. Example:
-                        'lambda df: op(df).unique()'
+                        itself but may do work when joinem is the backing
+                        CLI engine for another tool. Default: 'op'. Example:
+                        'lambda df: op(df).unique()'. Example:
+                        'jepl.SampleOp(1,
+                        stratify=jexl.group_id_kdtree(["x", "y"],
+                        n_group=100))'
   --with-column WITH_COLUMNS
                         Expression to be evaluated to add a column, has
-                        access to each datafile's filepath as `filepath` and
-                        polars as `pl`. Flag may be repeated to provide
-                        multiple expressions. Example:
+                        access to each datafile's filepath as `filepath`,
+                        polars as `pl`, and joinem.exprlib as `jexl`. Flag
+                        may be repeated to provide multiple expressions.
+                        Example:
                         'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv",
                         r"${1}").alias("filename stem")'
   --shrink-dtypes       Shrink numeric columns to the minimal required

@@ -11,6 +11,9 @@ import warnings
 
 import polars as pl
 
+from . import exprlib as jexl
+from . import pipelib as jepl
+
 
 def dataframe_cli(
     *,
@@ -259,7 +262,7 @@ def _eval_sample(sample: str) -> typing.Union[int, float, pl.Expr]:
 
 def _eval_pipe(pipe: str, op: typing.Callable, flag: str) -> typing.Callable:
     try:
-        return eval(pipe, {"pl": pl, "op": op})
+        return eval(pipe, {"pl": pl, "op": op, "jepl": jepl, "jexl": jexl})
     except Exception as e:
         logging.error(
             "Failed to parse %s expression `%s` error: %s", flag, pipe, e
@@ -434,7 +437,8 @@ def _add_parser_core(
         help=(
             "Number of rows to include in output, sampled uniformly. "
             "Accepts an integer, a float (fraction of rows), "
-            "or polars expression, with access to polars as `pl`. "
+            "or polars expression, with access to polars as `pl` and "
+            "joinem.exprlib as `jexl`. "
             "Sampling more rows than available raises an error; to sample "
             "up to a maximum, use an expression such as "
             r"""'pl.len().clip(upper_bound=100)'. """
@@ -501,7 +505,8 @@ def _add_parser_core(
         help=(
             "Expression evaluating to a callable applied to each input "
             "frame, before concatenation, via `df.pipe(...)`. "
-            "Has access to polars as `pl` and the default input dataframe "
+            "Has access to polars as `pl`, joinem.pipelib as `jepl`, "
+            "joinem.exprlib as `jexl`, and the default input dataframe "
             "op as `op`, which is a no-op for joinem itself but may do work "
             "when joinem is the backing CLI engine for another tool. "
             "Default: 'op'. Example: "
@@ -517,11 +522,14 @@ def _add_parser_core(
         help=(
             "Expression evaluating to a callable applied to the "
             "concatenated output frame via `df.pipe(...)`. "
-            "Has access to polars as `pl` and the default output dataframe "
+            "Has access to polars as `pl`, joinem.pipelib as `jepl`, "
+            "joinem.exprlib as `jexl`, and the default output dataframe "
             "op as `op`, which is a no-op for joinem itself but may do work "
             "when joinem is the backing CLI engine for another tool. "
             "Default: 'op'. Example: "
-            r"""'lambda df: op(df).unique()'"""
+            r"""'lambda df: op(df).unique()'. """
+            "Example: "
+            r"""'jepl.SampleOp(1, stratify=jexl.group_id_kdtree(["x", "y"], n_group=100))'"""
         ),
         type=str,
     )
@@ -533,7 +541,8 @@ def _add_parser_core(
         dest="with_columns",
         help=(
             "Expression to be evaluated to add a column, has access to each "
-            "datafile's filepath as `filepath` and polars as `pl`. "
+            "datafile's filepath as `filepath`, polars as `pl`, and "
+            "joinem.exprlib as `jexl`. "
             "Flag may be repeated to provide multiple expressions. "
             "Example: "
             r"""'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv", r"${1}").alias("filename stem")'"""
@@ -703,24 +712,16 @@ def _run_dataframe_cli(
         result = result.gather_every(args.gather_every)
     if args.sample is not None:
         sample = _eval_sample(args.sample)
-        sampled = pl.struct(pl.all()).sample(
-            **{"fraction" if isinstance(sample, float) else "n": sample},
-            seed=args.seed,
-        )
-        if args.sample_stratify:
-            # shuffle first so a shared seed picks different rows per group
-            result = (
-                result.collect()
-                .sample(fraction=1, shuffle=True, seed=args.seed)
-                .lazy()
+        try:
+            sample_op = jepl.SampleOp(
+                **{"fraction" if isinstance(sample, float) else "n": sample},
+                seed=args.seed,
+                stratify=args.sample_stratify,
             )
-            sampled = sampled.over(
-                *args.sample_stratify,
-                mapping_strategy="explode",
-            )
-        result = result.select(sampled.alias("__joinem_sampled__")).unnest(
-            "__joinem_sampled__"
-        )
+        except ValueError as e:
+            logging.error("Invalid --sample `%s` error: %s", args.sample, e)
+            sys.exit(1)
+        result = result.pipe(sample_op)
     if args.shuffle:
         result = result.collect().sample(
             fraction=1,
