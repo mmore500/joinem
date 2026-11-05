@@ -179,16 +179,16 @@ python3 -c 'import polars as pl; pl.DataFrame({"x": range(100), "y": [v % 7 for 
 find out/xy_grid.csv | python3 -m joinem out/jepl_kdtree.csv \
   --opipe 'jepl.SampleOp(1, stratify=jexl.group_id_kdtree([jexl.scaled_standard("x"), jexl.scaled_standard("y")], n_group=10), seed=1)'
 python3 -c 'import polars as pl; d = pl.read_csv("out/jepl_kdtree.csv"); assert d.height == 10 and d.columns == ["x", "y"], d'
-find out/xy_grid.csv | python3 -m joinem out/jepl_balltree.csv \
-  --ipipe 'jepl.SampleOp(fraction=0.5, stratify=jexl.group_id_balltree(["x", "y"], n_group=4), seed=1)'
-python3 -c 'import polars as pl; d = pl.read_csv("out/jepl_balltree.csv"); assert d.height == 48, d  # 4 groups of 25 rows, floor(25 / 2) each'
+find out/xy_grid.csv | python3 -m joinem out/jepl_kdtree_fraction.csv \
+  --ipipe 'jepl.SampleOp(fraction=0.5, stratify=jexl.group_id_kdtree(["x", "y"], n_group=4), seed=1)'
+python3 -c 'import polars as pl; d = pl.read_csv("out/jepl_kdtree_fraction.csv"); assert d.height == 48, d  # 4 groups of 25 rows, floor(25 / 2) each'
 find out/xy_grid.csv | python3 -m joinem out/jexl_with_column.csv \
   --with-column 'jexl.scaled_minmax("x").alias("x01")' \
   --with-column 'jexl.group_id_kdtree(["x", "y"], n_group=5)'
 python3 -c 'import polars as pl; d = pl.read_csv("out/jexl_with_column.csv"); assert d["x01"].min() == 0 and d["group_id_kdtree"].n_unique() == 5, d'
 find out/xy_grid.csv | python3 -m joinem out/jexl_sample_stratify.csv \
-  --with-column 'jexl.group_id_balltree(["x", "y"], n_group=5)' \
-  --sample 2 --sample-stratify group_id_balltree --seed 1
+  --with-column 'jexl.group_id_kdtree(["x", "y"], n_group=5)' \
+  --sample 2 --sample-stratify group_id_kdtree --seed 1
 python3 -c 'import polars as pl; d = pl.read_csv("out/jexl_sample_stratify.csv"); assert d.height == 10, d'
 
 # --opipe stratified sampling on kd-tree groups over multiple normalized dims:
