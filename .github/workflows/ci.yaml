@@ -33,6 +33,33 @@ jobs:
     - name: Run smoke tests
       run: ./tests/test_smoke.sh
 
+  unit-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        subdivision:
+          - "test_exprlib"
+          - "test_pipelib"
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.12"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements.txt
+    - name: Log coverage configuration
+      run: python -m coverage debug sys
+    - name: Run tests with coverage report
+      env:
+        PYTHONWARNINGS: "ignore::DeprecationWarning"
+      run: python -m coverage run --source=joinem -m pytest tests/test_joinem/${{ matrix.subdivision }}
+    - name: Show coverage report
+      run: python -m coverage report -m
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -65,6 +92,7 @@ jobs:
     needs:
       - docker-build
       - test
+      - unit-test
       - lint
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
@@ -90,6 +118,7 @@ jobs:
     name: Docker Image Deploy
     needs:
       - test
+      - unit-test
       - lint
       - docker-build
     runs-on: ubuntu-latest

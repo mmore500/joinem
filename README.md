@@ -138,6 +138,28 @@ ls -1 *.csv | python3 -m joinem "/dev/stdout" --output-filetype show \
   --opipe 'lambda df: df.collect().glimpse(return_type="frame")'
 ```
 
+### Helper Libraries: `jepl` and `jexl`
+
+Eval'ed expressions also have access to joinem's helper libraries:
+
+- `jepl` (`joinem.pipelib`): factories for frame-to-frame callables, for use with `--ipipe`/`--opipe`.
+    - `SampleOp(n=None, *, fraction=None, with_replacement=False, shuffle=False, seed=None, stratify=None)`: sample rows, mirroring `pl.DataFrame.sample`, optionally stratified by one or more column names and/or expressions.
+- `jexl` (`joinem.exprlib`): polars expression factories, for use anywhere expressions are eval'ed (e.g., `--with-column`, `--filter`, `--sample`, `--ipipe`/`--opipe`).
+    - `standard_scaled(expr)`: zero mean, unit variance.
+    - `minmax_scaled(expr)`: rescale onto [0, 1].
+    - `kdtree_group_id(on_dims, n_group, kdtree_kwargs={})`: partition rows into `n_group` (or, if float, a fraction of rows) spatially compact groups by splitting a `scipy.spatial.cKDTree`.
+    - `balltree_group_id(on_dims, n_group, balltree_kwargs={})`: same, using a `sklearn.neighbors.BallTree`.
+
+For example, spatially thin data to two rows from each of 100 regions, normalizing `x` by min-max scaling and skewed `y` by quantile.
+```
+ls -1 *.csv | python3 -m joinem out.pqt \
+  --opipe 'jepl.SampleOp(2, seed=1, stratify=jexl.kdtree_group_id(
+    [jexl.minmax_scaled("x"), pl.col("y").rank() / pl.len()], 100,
+  ))'
+```
+
+These libraries are also importable directly, e.g., `from joinem.exprlib import kdtree_group_id`.
+
 ## API
 
 ```
@@ -185,10 +207,11 @@ options:
   --sample SAMPLE       Number of rows to include in output, sampled
                         uniformly. Accepts an integer, a float (fraction of
                         rows), or polars expression, with access to polars
-                        as `pl`. Sampling more rows than available raises an
-                        error; to sample up to a maximum, use an expression
-                        such as 'pl.len().clip(upper_bound=100)'. Pass
-                        --seed for deterministic behavior.
+                        as `pl` and joinem.exprlib as `jexl`. Sampling more
+                        rows than available raises an error; to sample up to
+                        a maximum, use an expression such as
+                        'pl.len().clip(upper_bound=100)'. Pass --seed for
+                        deterministic behavior.
   --sample-stratify SAMPLE_STRATIFY
                         Column name to stratify --sample by, so that the
                         sample size applies to each distinct value (or
@@ -207,25 +230,30 @@ options:
                         provide multiple expressions. Example:
                         'pl.Config.set_engine_affinity(engine="streaming")'
   --ipipe IPIPE         Expression evaluating to a callable applied to each
-                        input frame, before concatenation, via `df.pipe(...)`.
-                        Has access to polars as `pl` and the default input
-                        dataframe op as `op`, which is a no-op for joinem
-                        itself but may do work when joinem is the backing CLI
-                        engine for another tool. Default: 'op'. Example:
-                        'lambda df:
+                        input frame, before concatenation, via
+                        `df.pipe(...)`. Has access to polars as `pl`,
+                        joinem.pipelib as `jepl`, joinem.exprlib as `jexl`,
+                        and the default input dataframe op as `op`, which is
+                        a no-op for joinem itself but may do work when
+                        joinem is the backing CLI engine for another tool.
+                        Default: 'op'. Example: 'lambda df:
                         op(df).with_columns(pl.lit(1).alias("one"))'
   --opipe OPIPE         Expression evaluating to a callable applied to the
                         concatenated output frame via `df.pipe(...)`. Has
-                        access to polars as `pl` and the default output
+                        access to polars as `pl`, joinem.pipelib as `jepl`,
+                        joinem.exprlib as `jexl`, and the default output
                         dataframe op as `op`, which is a no-op for joinem
-                        itself but may do work when joinem is the backing CLI
-                        engine for another tool. Default: 'op'. Example:
-                        'lambda df: op(df).unique()'
+                        itself but may do work when joinem is the backing
+                        CLI engine for another tool. Default: 'op'. Example:
+                        'lambda df: op(df).unique()'. Example:
+                        'jepl.SampleOp(1,
+                        stratify=jexl.kdtree_group_id(["x", "y"], 100))'
   --with-column WITH_COLUMNS
                         Expression to be evaluated to add a column, has
-                        access to each datafile's filepath as `filepath` and
-                        polars as `pl`. Flag may be repeated to provide
-                        multiple expressions. Example:
+                        access to each datafile's filepath as `filepath`,
+                        polars as `pl`, and joinem.exprlib as `jexl`. Flag
+                        may be repeated to provide multiple expressions.
+                        Example:
                         'pl.lit(filepath).str.replace(r".*?([^/]*)\.csv",
                         r"${1}").alias("filename stem")'
   --shrink-dtypes       Shrink numeric columns to the minimal required
