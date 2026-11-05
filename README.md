@@ -225,7 +225,7 @@ options:
                         CLI engine for another tool. Default: 'op'. Example:
                         'lambda df: op(df).unique()'. Example:
                         'jepl.SampleOp(1,
-                        stratify=jexl.kdtree_group_id(["x", "y"],
+                        stratify=jexl.group_id_kdtree(["x", "y"],
                         n_group=100))'
   --with-column WITH_COLUMNS
                         Expression to be evaluated to add a column, has

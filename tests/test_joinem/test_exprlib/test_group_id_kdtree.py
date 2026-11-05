@@ -4,10 +4,10 @@ import numpy as np
 import polars as pl
 import pytest
 
-from joinem.exprlib import balltree_group_id as group_id
-from joinem.exprlib import standard_scaled
+from joinem.exprlib import group_id_kdtree as group_id
+from joinem.exprlib import scaled_standard
 
-NAME = "balltree_group_id"
+NAME = "group_id_kdtree"
 
 
 @pytest.fixture
@@ -96,7 +96,7 @@ def test_int_dims():
 
 def test_expr_dims(df: pl.DataFrame):
     res = df.select(
-        group_id([standard_scaled("x"), standard_scaled("x") * 2], n_group=10),
+        group_id([scaled_standard("x"), scaled_standard("x") * 2], n_group=10),
     ).to_series()
     assert res.n_unique() == 10
 
@@ -184,21 +184,19 @@ def test_invalid(on_dims, n_group):
 
 
 @pytest.mark.parametrize(
-    "balltree_kwargs",
-    [{"metric": "chebyshev"}, {"metric": "manhattan"}],
+    "kdtree_kwargs",
+    [{"balanced_tree": False}, {"balanced_tree": True}, {"copy_data": True}],
 )
-def test_balltree_kwargs(df: pl.DataFrame, balltree_kwargs: dict):
+def test_kdtree_kwargs(df: pl.DataFrame, kdtree_kwargs: dict):
     res = df.select(
-        group_id(["x", "y"], n_group=10, balltree_kwargs=balltree_kwargs),
+        group_id(["x", "y"], n_group=10, kdtree_kwargs=kdtree_kwargs),
     ).to_series()
     assert res.n_unique() == 10
 
 
-def test_balltree_kwargs_invalid(df: pl.DataFrame):
+def test_kdtree_kwargs_invalid(df: pl.DataFrame):
     with pytest.raises(Exception):
-        df.select(
-            group_id(["x"], n_group=10, balltree_kwargs={"metric": "nope"}),
-        )
+        df.select(group_id(["x"], n_group=10, kdtree_kwargs={"nope": 1}))
 
 
 def test_compact_groups():
@@ -218,14 +216,10 @@ def test_compact_groups():
 
 
 @pytest.mark.parametrize("leaf_size", [1, 16, 1000])
-def test_balltree_kwargs_leaf_size_disallowed(
-    df: pl.DataFrame, leaf_size: int
-):
+def test_kdtree_kwargs_leaf_size_disallowed(df: pl.DataFrame, leaf_size: int):
     with pytest.raises(Exception):
         df.select(
             group_id(
-                ["x", "y"],
-                n_group=10,
-                balltree_kwargs={"leaf_size": leaf_size},
+                ["x", "y"], n_group=10, kdtree_kwargs={"leafsize": leaf_size}
             ),
         )

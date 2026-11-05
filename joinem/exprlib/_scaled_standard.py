@@ -3,7 +3,7 @@ import typing
 import polars as pl
 
 
-def standard_scaled(expr: typing.Union[pl.Expr, str]) -> pl.Expr:
+def scaled_standard(expr: typing.Union[pl.Expr, str]) -> pl.Expr:
     """Standardize `expr` to zero mean and unit variance.
 
     Mirrors `sklearn.preprocessing.StandardScaler`: uses population

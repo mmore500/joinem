@@ -3,7 +3,7 @@ import typing
 import polars as pl
 import pytest
 
-from joinem.exprlib import kdtree_group_id
+from joinem.exprlib import group_id_kdtree
 from joinem.pipelib import ChainOp, SampleOp
 
 _apply_params = pytest.mark.parametrize(
@@ -82,12 +82,12 @@ def test_ChainOp_nested(df: pl.DataFrame):
 def test_ChainOp_with_SampleOp():
     df = pl.DataFrame({"x": range(100), "y": range(100, 0, -1)})
     op = ChainOp(
-        lambda df: df.with_columns(kdtree_group_id(["x", "y"], n_group=10)),
-        SampleOp(1, stratify="kdtree_group_id", seed=1),
-        lambda df: df.sort("kdtree_group_id"),
+        lambda df: df.with_columns(group_id_kdtree(["x", "y"], n_group=10)),
+        SampleOp(1, stratify="group_id_kdtree", seed=1),
+        lambda df: df.sort("group_id_kdtree"),
     )
     result = df.lazy().pipe(op).collect()
-    assert result["kdtree_group_id"].to_list() == list(range(10))
+    assert result["group_id_kdtree"].to_list() == list(range(10))
 
 
 @pytest.mark.parametrize("bad_op", [None, 1, "op", pl.col("v")])

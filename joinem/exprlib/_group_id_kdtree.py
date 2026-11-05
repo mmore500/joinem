@@ -18,7 +18,7 @@ def _label_rows(
     return tree_group_label_tree_order(tree.indices, n_group)
 
 
-def kdtree_group_id(
+def group_id_kdtree(
     on_dims: typing.Sequence[typing.Union[pl.Expr, str]],
     *,
     n_group: int,
@@ -35,8 +35,8 @@ def kdtree_group_id(
     Parameters
     ----------
     on_dims : sequence of str or pl.Expr
-        Coordinates for each row. Consider scaling with `standard_scaled`
-        or `minmax_scaled` first.
+        Coordinates for each row. Consider scaling with `scaled_standard`
+        or `scaled_minmax` first.
     n_group : int
         Number of groups. Clipped, with a warning, to the number of
         non-null rows.
@@ -48,7 +48,7 @@ def kdtree_group_id(
     Returns
     -------
     pl.Expr
-        Expression of data type `UInt64`, named "kdtree_group_id".
+        Expression of data type `UInt64`, named "group_id_kdtree".
 
     Raises
     ------
@@ -57,7 +57,7 @@ def kdtree_group_id(
 
     See Also
     --------
-    balltree_group_id :
+    group_id_balltree :
         Ball tree counterpart, with ball-shaped rather than box-shaped
         groups.
 
@@ -75,7 +75,7 @@ def kdtree_group_id(
     --------
     Thin to two spatially spread rows from each of 100 groups:
 
-    >>> SampleOp(2, stratify=kdtree_group_id(["x", "y"], n_group=100))
+    >>> SampleOp(2, stratify=group_id_kdtree(["x", "y"], n_group=100))
     """
     return tree_group_make_id_expr(
         on_dims,
@@ -83,5 +83,5 @@ def kdtree_group_id(
         label_rows=functools.partial(
             _label_rows, kdtree_kwargs=dict(kdtree_kwargs)
         ),
-        name="kdtree_group_id",
+        name="group_id_kdtree",
     )

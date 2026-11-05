@@ -1,11 +1,11 @@
-from ._balltree_group_id import balltree_group_id
-from ._kdtree_group_id import kdtree_group_id
-from ._minmax_scaled import minmax_scaled
-from ._standard_scaled import standard_scaled
+from ._group_id_balltree import group_id_balltree
+from ._group_id_kdtree import group_id_kdtree
+from ._scaled_minmax import scaled_minmax
+from ._scaled_standard import scaled_standard
 
 __all__ = [
-    "balltree_group_id",
-    "kdtree_group_id",
-    "minmax_scaled",
-    "standard_scaled",
+    "group_id_balltree",
+    "group_id_kdtree",
+    "scaled_minmax",
+    "scaled_standard",
 ]

@@ -1,7 +1,7 @@
 import polars as pl
 import pytest
 
-from joinem.exprlib import kdtree_group_id
+from joinem.exprlib import group_id_kdtree
 from joinem.pipelib import SampleOp
 
 
@@ -132,13 +132,13 @@ def test_stratify_lazy(df: pl.DataFrame):
 
 def test_stratify_tree_group_id():
     df = pl.DataFrame({"x": range(100), "y": range(100, 0, -1)})
-    group_id = kdtree_group_id(["x", "y"], n_group=10)
+    group_id = group_id_kdtree(["x", "y"], n_group=10)
     res = df.pipe(SampleOp(1, stratify=group_id, seed=1)).collect()
     assert res.columns == df.columns
     assert res.height == 10
     # exactly one sampled row per group
     groups = df.with_columns(group_id).join(res, on=["x", "y"])
-    assert groups["kdtree_group_id"].sort().to_list() == list(range(10))
+    assert groups["group_id_kdtree"].sort().to_list() == list(range(10))
 
 
 @pytest.mark.parametrize(

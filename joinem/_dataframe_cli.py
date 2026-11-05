@@ -529,7 +529,7 @@ def _add_parser_core(
             "Default: 'op'. Example: "
             r"""'lambda df: op(df).unique()'. """
             "Example: "
-            r"""'jepl.SampleOp(1, stratify=jexl.kdtree_group_id(["x", "y"], n_group=100))'"""
+            r"""'jepl.SampleOp(1, stratify=jexl.group_id_kdtree(["x", "y"], n_group=100))'"""
         ),
         type=str,
     )

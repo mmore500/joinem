@@ -3,7 +3,7 @@ import typing
 import polars as pl
 
 
-def minmax_scaled(expr: typing.Union[pl.Expr, str]) -> pl.Expr:
+def scaled_minmax(expr: typing.Union[pl.Expr, str]) -> pl.Expr:
     """Linearly rescale `expr` onto the range [0, 1].
 
     Mirrors `sklearn.preprocessing.MinMaxScaler`: maps constant input to
