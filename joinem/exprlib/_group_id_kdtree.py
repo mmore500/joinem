@@ -43,8 +43,7 @@ def group_id_kdtree(
     kdtree_kwargs : mapping, optional
         Additional keyword arguments for `scipy.spatial.cKDTree`. Overrides
         default `balanced_tree=True`. Must not contain `leafsize`, as
-        `leafsize=1` is required for spatially compact groups; passing it
-        raises an error when the expression is evaluated.
+        `leafsize=1` is required for spatially compact groups.
 
     Returns
     -------
@@ -74,8 +73,7 @@ def group_id_kdtree(
 
     Examples
     --------
-    Sample two rows from each of 100 groups of nearby rows, so every
-    region of the data is represented without clumps or gaps:
+    Sample two rows from each of 100 groups of clustered rows.
 
     >>> SampleOp(2, stratify=group_id_kdtree(["x", "y"], n_group=100))
     """

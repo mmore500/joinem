@@ -33,8 +33,7 @@ def SampleOp(
     with_replacement : bool, default False
         Allow rows to be sampled more than once.
     shuffle : bool, optional
-        If True, shuffle sampled rows; if False, preserve their relative
-        order. If None, use polars' default.
+        If True, shuffle sampled rows. If None, use polars default.
     seed : int, optional
         Seed for deterministic behavior.
     stratify : str, pl.Expr, or iterable thereof, optional
@@ -90,8 +89,6 @@ def SampleOp(
                 f"stratify items must be str or pl.Expr, {item!r}"
             )
 
-    tmp_name = "__joinem_sampled__"
-
     def do_sample(
         df: typing.Union[pl.DataFrame, pl.LazyFrame],
     ) -> pl.LazyFrame:
@@ -105,9 +102,13 @@ def SampleOp(
         if stratify:
             # shuffle first so different row orders picked per group
             lf = lf.select(
-                pl.struct(pl.all()).shuffle(seed=seed).alias(tmp_name),
-            ).unnest(tmp_name)
+                pl.struct(pl.all())
+                .shuffle(seed=seed)
+                .alias("__joinem_sampled__"),
+            ).unnest("__joinem_sampled__")
             sampled = sampled.over(*stratify, mapping_strategy="explode")
-        return lf.select(sampled.alias(tmp_name)).unnest(tmp_name)
+        return lf.select(sampled.alias("__joinem_sampled__")).unnest(
+            "__joinem_sampled__"
+        )
 
     return do_sample

@@ -43,8 +43,7 @@ def group_id_balltree(
     balltree_kwargs : mapping, optional
         Additional keyword arguments for `sklearn.neighbors.BallTree`, such
         as `metric`. Must not contain `leaf_size`, as `leaf_size=1` is
-        required for spatially compact groups; passing it raises an error
-        when the expression is evaluated.
+        required for spatially compact groups.
 
     Returns
     -------
@@ -74,8 +73,7 @@ def group_id_balltree(
 
     Examples
     --------
-    Sample two rows from each of 100 groups of nearby rows, so every
-    region of the data is represented without clumps or gaps:
+    Sample two rows from each of 100 groups of clustered rows.
 
     >>> SampleOp(2, stratify=group_id_balltree(["x", "y"], n_group=100))
     """
